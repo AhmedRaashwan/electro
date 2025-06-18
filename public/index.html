@@ -1,523 +1,212 @@
 <!DOCTYPE html>
-<html lang="en">
+<html dir="rtl" lang="ar">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Firebase Push Notifications - Standalone</title>
+  <title>إدارة التقارير</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js"></script>
   <style>
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      margin: 0; 
-      padding: 20px; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      color: #333;
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    .progress-bar {
+      width: 50%;
+      height: 20px;
+      background: #e5e7eb;
+      border-radius: 10px;
       overflow: hidden;
     }
-    .header {
-      background: linear-gradient(135deg, #4285f4, #34a853);
-      color: white;
-      padding: 30px;
-      text-align: center;
+    .progress-bar-fill {
+      height: 100%;
+      background: #3b82f6;
+      transition: width 0.5s ease-in-out;
     }
-    .content { padding: 30px; }
-    
-    button { 
-      padding: 12px 20px; 
-      margin: 8px; 
-      background: linear-gradient(135deg, #4285f4, #34a853);
-      color: white; 
-      border: none; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    button:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+    .animate-fade-in {
+      animation: fade-in 0.3s ease-out;
     }
-    button:disabled { 
-      background: #ccc; 
-      cursor: not-allowed; 
-      transform: none;
-      box-shadow: none;
+    .image-container {
+      min-width: 300px;
     }
-    
-    #log { 
-      background: #f8f9fa; 
-      padding: 20px; 
-      border-radius: 10px; 
-      max-height: 400px; 
-      overflow-y: auto; 
-      font-family: 'Courier New', monospace; 
-      font-size: 13px;
-      border: 2px solid #e9ecef;
-      white-space: pre-wrap;
+    .image-container:hover img, .image-container:hover video {
+      transform: scale(1.05);
     }
-    
-    .status { 
-      padding: 15px; 
-      margin: 15px 0; 
-      border-radius: 10px; 
-      font-weight: bold;
-      text-align: center;
-      font-size: 16px;
-    }
-    .status.granted { 
-      background: linear-gradient(135deg, #d4edda, #c3e6cb); 
-      color: #155724; 
-      border: 2px solid #28a745; 
-    }
-    .status.denied { 
-      background: linear-gradient(135deg, #f8d7da, #f5c6cb); 
-      color: #721c24; 
-      border: 2px solid #dc3545; 
-    }
-    .status.default { 
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7); 
-      color: #856404; 
-      border: 2px solid #ffc107; 
-    }
-    
-    .config-section {
-      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-      padding: 20px;
-      border-radius: 10px;
-      margin: 20px 0;
-      border: 2px solid #2196f3;
-    }
-    
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      transition: border-color 0.3s ease;
-      box-sizing: border-box;
-    }
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #4285f4;
-      box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
-    }
-    
-    .button-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 20px 0;
-    }
-    
-    .alert {
-      padding: 15px;
-      border-radius: 8px;
-      margin: 15px 0;
-      font-weight: 500;
-    }
-    .alert.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-    .alert.success {
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .alert.warning {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
-    }
-    
-    .instructions {
-      background: #f8f9fa;
-      border-left: 4px solid #4285f4;
-      padding: 15px;
-      margin: 20px 0;
-    }
-    
-    @media (max-width: 768px) {
-      .content { padding: 20px; }
-      .button-group { flex-direction: column; }
-      button { width: 100%; margin: 5px 0; }
+    .login-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>🔔 Firebase Push Notifications</h1>
-      <p>Standalone Version - Host on Your Own Domain</p>
-    </div>
-    
-    <div class="content">
-      <div class="alert warning">
-        <strong>⚠️ Important:</strong> This page should be hosted on your own domain (not googleusercontent.com) for notifications to work properly. 
-        Save this HTML file and upload it to GitHub Pages, Netlify, Vercel, or your web server.
-      </div>
-      
-      <div class="config-section">
-        <h3>⚙️ Configuration</h3>
-        <label><strong>Apps Script Web App URL:</strong></label>
-        <input type="text" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec">
-        <small>Get this URL from your Google Apps Script deployment (Deploy → New Deployment → Web App)</small>
-      </div>
-      
-      <div id="statusDisplay" class="status default">
-        Permission Status: <span id="permissionStatus">Checking...</span>
-      </div>
-      
-      <div class="button-group">
-        <button id="checkStatusBtn">🔍 Check Status</button>
-        <button id="requestPermBtn">✋ Request Permission</button>
-        <button id="registerTokenBtn" disabled>📝 Register Token</button>
-        <button id="testNotificationBtn" disabled>🧪 Test Notification</button>
-        <button id="forcePermissionBtn">🔓 Force Permission Override</button>
-      </div>
-
-      <div class="instructions">
-        <h4>🛠️ Manual Browser Fix for googleusercontent.com:</h4>
-        <ol>
-          <li><strong>Chrome/Opera:</strong> Copy this URL: <code id="currentUrl"></code></li>
-          <li>Go to <code>chrome://settings/content/notifications</code> (or <code>opera://settings/content/notifications</code>)</li>
-          <li>Click "Add" next to "Allow to send notifications"</li>
-          <li>Paste the URL and click "Add"</li>
-          <li>Refresh this page and try again</li>
-        </ol>
-        <p><strong>Alternative:</strong> Click the lock/info icon in the address bar → Site Settings → Notifications → Allow</p>
-      </div>
-
-      <div style="margin: 30px 0;">
-        <h3>📋 Debug Log:</h3>
-        <div class="button-group">
-          <button id="clearLogBtn" style="background: #dc3545;">Clear Log</button>
-          <button id="copyLogBtn" style="background: #6c757d;">Copy Log</button>
-        </div>
-        <div id="log"></div>
+<body class="min-h-screen bg-gray-100 font-sans">
+  <div class="loading" id="loading">
+    <div class="text-center text-white">
+      <p class="text-xl mb-4">جاري التحميل...</p>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging.js";
+  <!-- Login Form -->
+  <div class="login-container" id="loginForm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">تسجيل الدخول</h2>
+    <div class="mb-4">
+      <button id="registerPush" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200">تسجيل لتلقي الإشعارات</button>
+    </div>
+    <form id="loginFormInner">
+      <div class="mb-4">
+        <label for="email" class="block text-sm font-medium text-gray-600">البريد الإلكتروني:</label>
+        <input type="email" id="email" name="email" placeholder="أدخل البريد الإلكتروني" required autocomplete="email" class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-600">كلمة المرور:</label>
+        <input type="password" id="password" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password" class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">تسجيل الدخول</button>
+    </form>
+    <div id="loginStatus" class="text-red-600 font-bold mt-4 text-center"></div>
+  </div>
 
-    // DOM Elements
-    const logBox = document.getElementById('log');
-    const permissionStatusEl = document.getElementById('permissionStatus');
-    const statusDisplayEl = document.getElementById('statusDisplay');
-    const registerBtn = document.getElementById('registerTokenBtn');
-    const testBtn = document.getElementById('testNotificationBtn');
-    const appsScriptUrlInput = document.getElementById('appsScriptUrl');
-    const currentUrlEl = document.getElementById('currentUrl');
+  <!-- Main Content -->
+  <div class="container mx-auto p-6 max-w-7xl hidden" id="mainContent">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">إدارة التقارير</h1>
+      <div class="flex items-center gap-4">
+        <h3 class="text-xl font-semibold text-gray-700" id="welcomeMessage">مرحبًا</h3>
+        <button id="logoutButton" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">تسجيل الخروج</button>
+      </div>
+    </div>
 
-    // Set current URL for manual fix instructions
-    currentUrlEl.textContent = window.location.origin + window.location.pathname;
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+      <div class="flex flex-col sm:flex-row gap-4 items-end">
+        <div class="w-full sm:w-1/2 order-first">
+          <label for="search-input" class="block text-lg font-medium text-gray-700">البحث:</label>
+          <div class="flex gap-2">
+            <input id="search-input" type="text" placeholder="ابحث في السجلات..." class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+            <button id="search-button" type="button" class="mt-1 bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg">بحث</button>
+          </div>
+        </div>
+        <div class="w-full sm:w-1/2 flex flex-col sm:flex-row gap-4 order-last">
+          <div class="w-full sm:w-1/2">
+            <label for="status-filter" class="block text-lg font-medium text-gray-700">الحالة:</label>
+            <div class="relative">
+              <select id="status-filter" class="mt-1 block w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200 hover:border-blue-400 text-lg text-center">
+                <option value="all">جميع الحالات</option>
+                <option value="new" selected>جديد</option>
+                <option value="done">منتهي</option>
+                <option value="pending">معلق</option>
+                <option value="cancelled">ملغى</option>
+                <option value="ongoing">جاري</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="w-full sm:w-1/2">
+            <label for="date-filter" class="block text-lg font-medium text-gray-700">التاريخ:</label>
+            <div class="relative">
+              <select id="date-filter" class="mt-1 block w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200 hover:border-blue-400 text-lg text-center">
+                <option value="all">جميع التواريخ</option>
+                <option value="today">اليوم</option>
+                <option value="week" selected>هذا الأسبوع</option>
+                <option value="month">هذا الشهر</option>
+                <option value="custom">مخصص</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="date-range-picker" class="hidden mt-4 flex flex-col sm:flex-row gap-4">
+        <div>
+          <label for="from-date" class="block text-lg font-medium text-gray-700">من:</label>
+          <input id="from-date" type="date" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+        </div>
+        <div>
+          <label for="to-date" class="block text-lg font-medium text-gray-700">إلى:</label>
+          <input id="to-date" type="date" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+        </div>
+        <button id="go-button" type="button" class="self-end mt-4 sm:mt-7 bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg">تطبيق</button>
+      </div>
+    </div>
+    <div id="error-message" class="text-red-600 font-bold mb-6 hidden"></div>
+    <div id="stats-container" style="background: linear-gradient(to bottom, #e5e7eb, #d1d5db); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem;"></div>
+    <div id="cards" class="grid gap-6"></div>
+    <div class="pagination flex justify-center gap-2 mt-6" id="pagination"></div>
+    <div id="popup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+      <div class="bg-white p-6 rounded-xl max-w-4xl max-h-[90vh] w-full overflow-auto shadow-2xl animate-fade-in">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">تفاصيل التقرير</h2>
+        <button id="close-popup" class="mt-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">إغلاق</button>
+        <div id="popup-details"></div>
+        <button id="close-popup-buttom" class="mt-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">إغلاق</button>
+      </div>
+    </div>
+  </div>
 
-    const log = (msg, type = 'info') => {
-      const timestamp = new Date().toLocaleTimeString();
-      const logMsg = `[${timestamp}] ${msg}`;
-      console.log(logMsg);
-      
-      const logEntry = document.createElement('div');
-      logEntry.textContent = logMsg;
-      logEntry.style.color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#333';
-      logBox.appendChild(logEntry);
-      logBox.scrollTop = logBox.scrollHeight;
-    };
-
-    const updatePermissionStatus = () => {
-      const permission = Notification.permission;
-      permissionStatusEl.textContent = permission.toUpperCase();
-      
-      statusDisplayEl.className = `status ${permission}`;
-      
-      if (permission === 'granted') {
-        registerBtn.disabled = false;
-        testBtn.disabled = false;
-      } else {
-        registerBtn.disabled = true;
-        testBtn.disabled = true;
-      }
-      
-      log(`Permission status: ${permission}`, permission === 'granted' ? 'success' : permission === 'denied' ? 'error' : 'warning');
-    };
-
-    // Firebase Configuration
+  <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyCRKhcp_SHx3JhK9voZdLUEYjgDsd8UFS8",
+      apiKey: "YOUR_API_KEY",
       authDomain: "electro-12753.firebaseapp.com",
       projectId: "electro-12753",
-      storageBucket: "electro-12753.firebasestorage.app",
-      messagingSenderId: "34147042347",
-      appId: "1:34147042347:web:e358bb7763a6afff03566e",
-      measurementId: "G-MXBD5C0ZDJ"
+      storageBucket: "electro-12753.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
 
-    const vapidKey = "BJymDhXcSBI5afnuuDumd_CTyg15QDL7dXRQn9Zrilb3INFV5db4IriJSvDL9ki77qJGz__Twq3p5Kzkmb3Pu4w";
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-    // Initialize Firebase
-    let app, messaging;
-    try {
-      app = initializeApp(firebaseConfig);
-      messaging = getMessaging(app);
-      log('✅ Firebase initialized successfully', 'success');
-    } catch (e) {
-      log(`❌ Firebase initialization error: ${e.message}`, 'error');
+    let currentPage = 1;
+
+    function showLoading(show, progress = 0) {
+      const loading = document.getElementById('loading');
+      const progressBar = document.getElementById('progress-bar-fill');
+      if (!loading || !progressBar) {
+        console.error('عناصر التحميل غير موجودة');
+        document.getElementById('error-message').classList.remove('hidden');
+        document.getElementById('error-message').textContent = 'خطأ في التحميل';
+        return;
+      }
+      loading.style.display = show ? 'flex' : 'none';
+      progressBar.style.width = `${progress}%`;
+      if (show) {
+        let currentProgress = progress;
+        const interval = setInterval(() => {
+          currentProgress += 10;
+          progressBar.style.width = `${currentProgress}%`;
+          if (currentProgress >= 100 || loading.style.display === 'none') {
+            clearInterval(interval);
+          }
+        }, 300);
+      }
     }
 
-    // Check initial status
-    updatePermissionStatus();
-
-    // Event Listeners
-    document.getElementById('checkStatusBtn').addEventListener('click', () => {
-      updatePermissionStatus();
-      
-      const domain = window.location.hostname;
-      log(`🌐 Current domain: ${domain}`);
-      log(`🔒 Secure context: ${window.isSecureContext}`);
-      log(`🔧 Service Worker support: ${('serviceWorker' in navigator)}`);
-      log(`🌍 User Agent: ${navigator.userAgent}`);
-      
-      if (domain.includes('googleusercontent.com')) {
-        log('⚠️  WARNING: googleusercontent.com domain detected!', 'warning');
-        log('💡 This domain is commonly blocked by browsers', 'warning');
-        log('🚀 Solution: Host on your own domain or enable manually', 'warning');
-      } else {
-        log('✅ Good! Not on googleusercontent.com domain', 'success');
-      }
-    });
-
-    document.getElementById('requestPermBtn').addEventListener('click', async () => {
+    async function registerForPush() {
       try {
-        log('🔄 Requesting notification permission...');
-        
-        if (!window.isSecureContext) {
-          log('❌ Not in secure context (HTTPS required)', 'error');
-          alert('❌ Notifications require HTTPS');
-          return;
-        }
-
-        if (!('Notification' in window)) {
-          log('❌ Notifications not supported in this browser', 'error');
-          alert('❌ Push notifications are not supported in this browser');
-          return;
-        }
-
-        const domain = window.location.hostname;
-        if (domain.includes('googleusercontent.com')) {
-          log('⚠️  Attempting permission on restricted domain', 'warning');
-        }
-
-        const result = await Notification.requestPermission();
-        log(`📋 Permission result: ${result}`, result === 'granted' ? 'success' : 'error');
-        
-        updatePermissionStatus();
-        
-        if (result === 'granted') {
-          alert('✅ Notification permission granted!');
-          log('🎉 Success! You can now register for push notifications', 'success');
-        } else if (result === 'denied') {
-          log('❌ Permission denied by browser', 'error');
-          alert('❌ Permission denied. Please enable manually:\n\n1. Click lock icon in address bar\n2. Set Notifications to "Allow"\n3. Refresh page\n\nOr host this page on your own domain.');
-        } else {
-          log('⚠️  Permission request dismissed', 'warning');
-          alert('⚠️ Permission request was dismissed');
-        }
-        
-      } catch (e) {
-        log(`❌ Exception requesting permission: ${e.message}`, 'error');
-        alert(`❌ Error: ${e.message}`);
-      }
-    });
-
-    document.getElementById('forcePermissionBtn').addEventListener('click', () => {
-      const instructions = `
-🔓 FORCE PERMISSION OVERRIDE INSTRUCTIONS:
-
-For Chrome/Opera:
-1. Copy this URL: ${window.location.origin}
-2. Open: chrome://settings/content/notifications
-3. Click "Add" next to "Allow to send notifications"
-4. Paste the URL and click "Add"
-5. Refresh this page
-
-For Firefox:
-1. Click the shield icon in address bar
-2. Turn off "Enhanced Tracking Protection"
-3. Click the lock icon → Connection secure → More information
-4. Permissions tab → Notifications → Allow
-
-Alternative method:
-1. Click the lock/info icon in address bar
-2. Click "Site settings" or "Permissions"
-3. Change Notifications from "Block" to "Allow"
-4. Refresh the page
-
-Then come back and click "Request Permission" again.
-      `;
-      
-      alert(instructions);
-      log('📋 Force permission instructions displayed', 'warning');
-    });
-
-    document.getElementById('registerTokenBtn').addEventListener('click', async () => {
-      if (Notification.permission !== 'granted') {
-        alert('❌ Notification permission not granted');
-        return;
-      }
-
-      const appsScriptUrl = appsScriptUrlInput.value.trim();
-      if (!appsScriptUrl) {
-        alert('❌ Please enter your Apps Script web app URL');
-        appsScriptUrlInput.focus();
-        return;
-      }
-
-      try {
-        log('🔄 Getting FCM token...');
-        
-        const token = await getToken(messaging, { vapidKey });
-        if (!token) {
-          log('❌ Failed to get FCM token', 'error');
-          alert('❌ Failed to get token. Check console for details.');
-          return;
-        }
-        
-        log(`✅ FCM Token received: ${token.substring(0, 30)}...`, 'success');
-
-        // Store token via Apps Script
-        log('📤 Sending token to Apps Script...');
-        
-        const response = await fetch(appsScriptUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: `action=storeToken&token=${encodeURIComponent(token)}`,
-          mode: 'cors'
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-
-        const result = await response.text();
-        log(`✅ Apps Script response: ${result}`, 'success');
-        alert(`✅ Success: ${result}`);
-
-      } catch (err) {
-        log(`❌ Error: ${err.message}`, 'error');
-        alert(`❌ Error: ${err.message}`);
-      }
-    });
-
-    document.getElementById('testNotificationBtn').addEventListener('click', () => {
-      if (Notification.permission !== 'granted') {
-        alert('❌ Notifications not permitted');
-        return;
-      }
-
-      log('🧪 Creating test notification...');
-      
-      const notification = new Notification('🎉 Test Successful!', {
-        body: 'Your notification system is working correctly!',
-        icon: 'https://firebase.google.com/images/brand-guidelines/logo-standard.png',
-        badge: 'https://firebase.google.com/images/brand-guidelines/logo-standard.png',
-        tag: 'test-notification',
-        requireInteraction: false
-      });
-      
-      notification.onclick = () => {
-        log('📱 Test notification clicked', 'success');
-        window.focus();
-        notification.close();
-      };
-      
-      notification.onshow = () => {
-        log('✅ Test notification displayed', 'success');
-      };
-      
-      notification.onerror = (e) => {
-        log(`❌ Notification error: ${e}`, 'error');
-      };
-      
-      setTimeout(() => {
-        notification.close();
-        log('⏰ Test notification auto-closed', 'info');
-      }, 5000);
-    });
-
-    document.getElementById('clearLogBtn').addEventListener('click', () => {
-      logBox.innerHTML = '';
-      log('🗑️ Log cleared');
-    });
-
-    document.getElementById('copyLogBtn').addEventListener('click', () => {
-      const logText = logBox.textContent;
-      navigator.clipboard.writeText(logText).then(() => {
-        alert('📋 Log copied to clipboard!');
-      }).catch(() => {
-        alert('❌ Failed to copy log');
-      });
-    });
-
-    // Handle incoming FCM messages
-    if (messaging) {
-      onMessage(messaging, (payload) => {
-        log(`📨 FCM Message received: ${JSON.stringify(payload)}`, 'success');
-        
-        if (payload.notification && Notification.permission === 'granted') {
-          const { title, body } = payload.notification;
-          
-          const notif = new Notification(title, {
-            body: body,
-            icon: payload.notification.icon || 'https://firebase.google.com/images/brand-guidelines/logo-standard.png',
-            data: payload.data
-          });
-          
-          notif.onclick = () => {
-            log('📱 FCM notification clicked', 'success');
-            window.focus();
-            notif.close();
-          };
-        }
-      });
-    }
-
-    // Initial setup
-    log('🚀 Application loaded and ready');
-    
-    if (window.location.hostname.includes('googleusercontent.com')) {
-      log('⚠️  Running on restricted googleusercontent.com domain', 'warning');
-      log('💡 For better compatibility, save this HTML file and host it on your own domain', 'warning');
-    } else {
-      log('✅ Running on compatible domain', 'success');
-    }
-
-    // Auto-populate Apps Script URL if we're on the domain
-    if (window.location.hostname.includes('googleusercontent.com')) {
-      // Try to extract the script ID from the URL
-      const urlParts = window.location.pathname.split('/');
-      if (urlParts.length > 1) {
-        const scriptId = urlParts[1];
-        appsScriptUrlInput.value = `https://script.google.com/macros/s/${scriptId}/exec`;
-        log('📝 Auto-detected Apps Script URL', 'info');
-      }
-    }
-  </script>
-</body>
-</html>
+        const permission = await Notification
