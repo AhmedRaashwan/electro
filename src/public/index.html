@@ -1,17 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html dir="rtl" lang="ar">
 <head>
-  <title>Firebase Push Notification Registration</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إدارة التقارير</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK: Fallback to local files if CDN fails -->
+  <script>
+    window.firebaseLoaded = false;
+    function loadFirebaseFallback() {
+      if (!window.firebaseLoaded && !window.firebase) {
+        console.warn('Firebase CDN failed, loading local fallback');
+        const script1 = document.createElement('script');
+        script1.src = '/firebase-app-compat.js';
+        script1.onload = () => {
+          const script2 = document.createElement('script');
+          script2.src = '/firebase-messaging-compat.js';
+          script2.onload = () => { window.firebaseLoaded = true; };
+          document.head.appendChild(script2);
+        };
+        script1.onerror = () => console.error('Failed to load local Firebase scripts');
+        document.head.appendChild(script1);
+      }
+    }
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" onload="window.firebaseLoaded = true;" onerror="loadFirebaseFallback();"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js" onload="window.firebaseLoaded = true;" onerror="loadFirebaseFallback();"></script>
+  <style>
+    .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .progress-bar { width: 50%; height: 20px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #3b82f6; transition: width 0.5s ease-in-out; }
+    @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fade-in 0.3s ease-out; }
+    .image-container { min-width: 300px; }
+    .image-container:hover img, .image-container:hover video { transform: scale(1.05); }
+    .login-container { max-width: 400px; margin: 2rem auto; padding: 2rem; background: white; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+  </style>
 </head>
-<body>
-  <h1>Register for Push Notifications</h1>
-  <button onclick="registerForPush()">Register</button>
-  <p id="status"></p>
+<body class="min-h-screen bg-gray-100 font-sans">
+  <div class="loading" id="loading">
+    <div class="text-center text-white">
+      <p class="text-xl mb-4">جاري التحميل...</p>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+  <div class="login-container" id="loginForm">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">تسجيل الدخول</h2>
+    <div class="mb-4">
+      <button id="registerPush" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200" disabled>تسجيل لتلقي الإشعارات</button>
+    </div>
+    <form id="loginFormInner" onsubmit="return false;">
+      <div class="mb-4">
+        <label for="email" class="block text-sm font-medium text-gray-600">البريد الإلكتروني:</label>
+        <input type="email" id="email" name="email" placeholder="أدخل البريد الإلكتروني" required autocomplete="email" class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div class="mb-4">
+        <label for="password" class="block text-sm font-medium text-gray-600">كلمة المرور:</label>
+        <input type="password" id="password" name="password" placeholder="أدخل كلمة المرور" required autocomplete="current-password" class="mt-1 block w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">تسجيل الدخول</button>
+    </form>
+    <div id="loginStatus" class="text-red-600 font-bold mt-4 text-center"></div>
+  </div>
+
+  <div class="container mx-auto p-6 max-w-7xl hidden" id="mainContent">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">إدارة التقارير</h1>
+      <div class="flex items-center gap-4">
+        <h3 class="text-xl font-semibold text-gray-700" id="welcomeMessage">مرحبًا</h3>
+        <button id="logoutButton" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200">تسجيل الخروج</button>
+      </div>
+    </div>
+    <div class="bg-white shadow-md rounded-lg p-6 mb-6">
+      <div class="flex flex-col sm:flex-row gap-4 items-end">
+        <div class="w-full sm:w-1/2 order-first">
+          <label for="search-input" class="block text-lg font-medium text-gray-700">البحث:</label>
+          <div class="flex gap-2">
+            <input id="search-input" type="text" placeholder="ابحث في السجلات..." class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+            <button id="search-button" type="button" class="mt-1 bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg">بحث</button>
+          </div>
+        </div>
+        <div class="w-full sm:w-1/2 flex flex-col sm:flex-row gap-4 order-last">
+          <div class="w-full sm:w-1/2">
+            <label for="status-filter" class="block text-lg font-medium text-gray-700">الحالة:</label>
+            <div class="relative">
+              <select id="status-filter" class="mt-1 block w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200 hover:border-blue-400 text-lg text-center">
+                <option value="all">جميع الحالات</option>
+                <option value="new" selected>جديد</option>
+                <option value="done">منتهي</option>
+                <option value="pending">معلق</option>
+                <option value="cancelled">ملغى</option>
+                <option value="ongoing">جاري</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="w-full sm:w-1/2">
+            <label for="date-filter" class="block text-lg font-medium text-gray-700">التاريخ:</label>
+            <div class="relative">
+              <select id="date-filter" class="mt-1 block w-full p-3 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none transition duration-200 hover:border-blue-400 text-lg text-center">
+                <option value="all">جميع التواريخ</option>
+                <option value="today">اليوم</option>
+                <option value="week" selected>هذا الأسبوع</option>
+                <option value="month">هذا الشهر</option>
+                <option value="custom">مخصص</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="date-range-picker" class="hidden mt-4 flex flex-col sm:flex-row gap-4">
+        <div>
+          <label for="from-date" class="block text-lg font-medium text-gray-700">من:</label>
+          <input id="from-date" type="date" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+        </div>
+        <div>
+          <label for="to-date" class="block text-lg font-medium text-gray-700">إلى:</label>
+          <input id="to-date" type="date" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition duration-200 text-lg">
+        </div>
+        <button id="go-button" type="button" class="self-end mt-4 sm:mt-7 bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg">تطبيق</button>
+      </div>
+    </div>
+    <div id="error-message" class="text-red-600 font-bold mb-6 hidden"></div>
+    <div id="stats-container" style="background: linear-gradient(to bottom, #e5e7eb, #d1d5db); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem;"></div>
+    <div id="cards" class="grid gap-6"></div>
+    <div class="pagination flex justify-center gap-2 mt-6" id="pagination"></div>
+    <div id="popup" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+      <div class="bg-white p-6 rounded-xl max-w-4xl max-h-[90vh] w-full overflow-auto shadow-2xl animate-fade-in">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">تفاصيل التقرير</h2>
+        <button id="close-popup" class="mt-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">إغلاق</button>
+        <div id="popup-details"></div>
+        <button id="close-popup-buttom" class="mt-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition duration-200">إغلاق</button>
+      </div>
+    </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
@@ -23,33 +157,530 @@
       measurementId: "YOUR_MEASUREMENT_ID"
     };
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+    let currentPage = 1;
+    const loginForm = document.getElementById('loginForm');
+    const loginFormInner = document.getElementById('loginFormInner');
+    const mainContent = document.getElementById('mainContent');
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const logoutButton = document.getElementById('logoutButton');
+    const loginStatus = document.getElementById('loginStatus');
+    const errorMessage = document.getElementById('error-message');
+    const registerPushButton = document.getElementById('registerPush');
+
+    function showLoading(show, progress = 0) {
+      try {
+        const loading = document.getElementById('loading');
+        const progressBar = document.getElementById('progress-bar-fill');
+        if (!loading || !progressBar) throw new Error('عناصر التحميل غير موجودة');
+        loading.style.display = show ? 'flex' : 'none';
+        progressBar.style.width = `${progress}%`;
+        if (show) {
+          let currentProgress = progress;
+          const interval = setInterval(() => {
+            currentProgress += 10;
+            progressBar.style.width = `${currentProgress}%`;
+            if (currentProgress >= 100 || loading.style.display === 'none') {
+              clearInterval(interval);
+            }
+          }, 300);
+        }
+      } catch (error) {
+        console.error('showLoading error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في التحميل: ' + error.message;
+      }
+    }
+
+    async function initializeFirebase() {
+      return new Promise((resolve, reject) => {
+        const checkFirebase = () => {
+          if (window.firebaseLoaded && window.firebase) {
+            try {
+              firebase.initializeApp(firebaseConfig);
+              const messaging = firebase.messaging();
+              registerPushButton.disabled = false;
+              resolve(messaging);
+            } catch (error) {
+              reject(error);
+            }
+          } else if (!window.firebaseLoaded) {
+            setTimeout(checkFirebase, 100);
+          } else {
+            reject(new Error('Firebase SDK failed to load'));
+          }
+        };
+        checkFirebase();
+      });
+    }
 
     async function registerForPush() {
       try {
+        const messaging = await initializeFirebase();
+        if (!messaging) throw new Error('Firebase Messaging not initialized');
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-          document.getElementById('status').innerText = 'Notification permission denied';
+          alert('تم رفض إذن الإشعارات');
           return;
         }
-
         const token = await messaging.getToken({ vapidKey: 'BJymDhXcSBI5afnuuDumd_CTyg15QDL7dXRQn9Zrilb3INFV5db4IriJSvDL9ki77qJGz__Twq3p5Kzkmb3Pu4w' });
         if (token) {
           const response = await fetch('/storeToken', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `token=${encodeURIComponent(token)}`
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
           });
           const result = await response.text();
-          document.getElementById('status').innerText = result;
+          alert(result);
         } else {
-          document.getElementById('status').innerText = 'No registration token available';
+          alert('فشل في الحصول على رمز الإشعار');
         }
       } catch (error) {
-        document.getElementById('status').innerText = `Error: ${error.message}`;
+        console.error('Error registering for push:', error);
+        alert('خطأ في تسجيل الإشعارات: ' + error.message);
       }
+    }
+
+    async function checkLoginStatus() {
+      try {
+        const displayName = localStorage.getItem('displayname');
+        if (displayName) {
+          showLoading(true);
+          const response = await fetch('/api/check-auth', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          });
+          const data = await response.json();
+          showLoading(false);
+          if (data.success) {
+            welcomeMessage.textContent = `مرحبًا, ${displayName}`;
+            loginForm.style.display = 'none';
+            mainContent.classList.remove('hidden');
+            loadContent();
+          } else {
+            localStorage.removeItem('displayname');
+            localStorage.removeItem('token');
+            welcomeMessage.textContent = 'لم يتم تسجيل الدخول';
+            loginForm.style.display = 'block';
+            mainContent.classList.add('hidden');
+          }
+        } else {
+          welcomeMessage.textContent = 'لم يتم تسجيل الدخول';
+          loginForm.style.display = 'block';
+          mainContent.classList.add('hidden');
+        }
+      } catch (error) {
+        showLoading(false);
+        console.error('Error checking login status:', error);
+        localStorage.removeItem('displayname');
+        localStorage.removeItem('token');
+        welcomeMessage.textContent = 'لم يتم تسجيل الدخول';
+        loginForm.style.display = 'block';
+        mainContent.classList.add('hidden');
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في التحقق من تسجيل الدخول: ' + error.message;
+      }
+    }
+
+    loginFormInner.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        loginStatus.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
+        return;
+      }
+
+      loginStatus.textContent = 'جاري تسجيل الدخول...';
+      loginFormInner.classList.add('opacity-50', 'pointer-events-none');
+      showLoading(true);
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+        showLoading(false);
+        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+        if (data.success) {
+          localStorage.setItem('displayname', data.displayName);
+          localStorage.setItem('token', response.headers.get('authorization')?.split(' ')[1] || '');
+          welcomeMessage.textContent = `مرحبًا, ${data.displayName}`;
+          loginForm.style.display = 'none';
+          mainContent.classList.remove('hidden');
+          loginStatus.textContent = '';
+          loginFormInner.reset();
+          loadContent();
+        } else {
+          loginStatus.textContent = data.message;
+        }
+      } catch (error) {
+        showLoading(false);
+        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+        loginStatus.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
+        console.error('Login error:', error);
+      }
+    });
+
+    logoutButton.addEventListener('click', () => {
+      try {
+        localStorage.removeItem('displayname');
+        localStorage.removeItem('token');
+        checkLoginStatus();
+      } catch (error) {
+        console.error('Logout error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في تسجيل الخروج: ' + error.message;
+      }
+    });
+
+    function toggleDatePicker() {
+      try {
+        const dateFilterValue = document.getElementById('date-filter').value;
+        const dateRangePicker = document.getElementById('date-range-picker');
+        if (!dateRangePicker) throw new Error('عنصر اختيار التاريخ غير موجود');
+        dateRangePicker.classList.toggle('hidden', dateFilterValue !== 'custom');
+      } catch (error) {
+        console.error('toggleDatePicker error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في تبديل اختيار التاريخ: ' + error.message;
+      }
+    }
+
+    async function loadContent() {
+      try {
+        const statusFilterValue = document.getElementById('status-filter').value || 'all';
+        const dateFilterValue = document.getElementById('date-filter').value || 'all';
+        const searchQuery = document.getElementById('search-input').value.trim();
+        let dateRangeFilter = null;
+        if (dateFilterValue === 'custom') {
+          const fromDateValue = document.getElementById('from-date').value;
+          const toDateValue = document.getElementById('to-date').value;
+          if (fromDateValue && toDateValue) {
+            dateRangeFilter = { fromDate: fromDateValue, toDate: toDateValue };
+          }
+        }
+        showLoading(true);
+        errorMessage.classList.add('hidden');
+        const queryParams = new URLSearchParams({
+          page: currentPage,
+          statusFilter: statusFilterValue,
+          dateFilter: dateFilterValue,
+          searchQuery,
+          ...(dateRangeFilter && { fromDate: dateRangeFilter.fromDate, toDate: dateRangeFilter.toDate })
+        });
+        const response = await fetch(`/api/content?${queryParams}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        showLoading(false);
+        if (!data.success) {
+          errorMessage.classList.remove('hidden');
+          errorMessage.textContent = 'خطأ في تحميل المحتوى: ' + data.error;
+          document.getElementById('stats-container').innerHTML = '';
+          document.getElementById('cards').innerHTML = '';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+        document.getElementById('stats-container').innerHTML = data.statsHtml;
+        document.getElementById('cards').innerHTML = data.recordsHtml;
+        document.getElementById('pagination').innerHTML = data.paginationHtml;
+        currentPage = data.currentPage;
+      } catch (error) {
+        showLoading(false);
+        console.error('loadContent error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في تحميل المحتوى: ' + error.message;
+      }
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      loadContent();
+    }
+
+    async function openPopup(id) {
+      try {
+        console.log('openPopup: id=', id, 'type=', typeof id);
+        showLoading(true);
+        const response = await fetch(`/api/popup/${id}?page=${currentPage}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await response.json();
+        showLoading(false);
+        if (!data.success) {
+          console.error('Popup error:', data.error);
+          errorMessage.classList.remove('hidden');
+          errorMessage.textContent = 'خطأ في فتح النافذة: ' + data.error;
+          return;
+        }
+        document.getElementById('popup-details').innerHTML = data.popupHtml;
+        document.getElementById('popup').classList.remove('hidden');
+        setTimeout(() => {
+          setupCameraInput();
+          setupRemoveImageButton();
+        }, 100);
+      } catch (error) {
+        showLoading(false);
+        console.error('Popup error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في فتح النافذة: ' + error.message;
+      }
+    }
+
+    function closePopup() {
+      try {
+        const popupElement = document.getElementById('popup');
+        if (!popupElement) throw new Error('النافذة غير موجودة');
+        popupElement.classList.add('hidden');
+      } catch (error) {
+        console.error('closePopup error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في إغلاق النافذة: ' + error.message;
+      }
+    }
+
+    function setupCameraInput() {
+      try {
+        const fileInput = document.createElement('input');
+        fileInput.id = 'feedback-img';
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.style.display = 'none';
+        const cameraButton = document.getElementById('camera-button');
+        const fileButton = document.getElementById('file-button');
+        let preview = document.getElementById('feedback-img-preview');
+        const photoControls = document.getElementById('photo-controls');
+        if (!cameraButton || !fileButton || !photoControls) {
+          console.error('Camera input elements missing');
+          return;
+        }
+        photoControls.appendChild(fileInput);
+        if (!preview) {
+          const container = document.createElement('div');
+          container.className = 'mt-3 feedback-img-container';
+          preview = document.createElement('img');
+          preview.id = 'feedback-img-preview';
+          preview.src = 'https://via.placeholder.com/300x50?text=لم+يتم+ارفاق+التقرير+حتى+الآن';
+          preview.alt = 'Feedback Preview';
+          preview.className = 'w-full h-auto rounded-lg opacity-75';
+          container.appendChild(preview);
+          photoControls.appendChild(container);
+        }
+        cameraButton.addEventListener('click', () => {
+          fileInput.setAttribute('capture', 'camera');
+          fileInput.click();
+          fileInput.removeAttribute('capture');
+        });
+        fileButton.addEventListener('click', () => {
+          fileInput.removeAttribute('capture');
+          fileInput.click();
+        });
+        fileInput.addEventListener('input', () => {
+          if (fileInput.files.length > 0) {
+            preview.src = URL.createObjectURL(fileInput.files[0]);
+            preview.classList.remove('opacity-75');
+          }
+        });
+        preview.addEventListener('error', () => {
+          preview.src = 'https://via.placeholder.com/300x75?text=فشل+تحميل+الصورة';
+          preview.classList.add('opacity-75');
+        });
+      } catch (error) {
+        console.error('setupCameraInput error:', error);
+      }
+    }
+
+    function setupRemoveImageButton() {
+      try {
+        const removeButton = document.getElementById('remove-img-button');
+        const fileInput = document.getElementById('feedback-img');
+        const preview = document.getElementById('feedback-img-preview');
+        if (!removeButton || !fileInput || !preview) {
+          console.error('Remove image button elements missing');
+          return;
+        }
+        removeButton.addEventListener('click', () => {
+          fileInput.value = '';
+          preview.src = 'https://via.placeholder.com/300x75?text=لا+توجد+صورة';
+          preview.classList.add('opacity-75');
+        });
+      } catch (error) {
+        console.error('setupRemoveImageButton error:', error);
+      }
+    }
+
+    async function saveChanges(id) {
+      try {
+        showLoading(true);
+        const status = document.getElementById('status')?.value || '';
+        const feedback = document.getElementById('feedback')?.value || '';
+        const fileInput = document.getElementById('feedback-img');
+        const preview = document.getElementById('feedback-img-preview');
+        const isPlaceholder = preview ? preview.classList.contains('opacity-75') : true;
+
+        const compressImage = (file) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+              const img = new Image();
+              img.src = event.target.result;
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const maxWidth = 800;
+                const maxHeight = 800;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                  if (width > maxWidth) {
+                    height = height * (maxWidth / width);
+                    width = maxWidth;
+                  }
+                } else if (height > maxHeight) {
+                  width = width * (maxHeight / height);
+                  height = maxHeight;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                canvas.toBlob((blob) => {
+                  const reader2 = new FileReader();
+                  reader2.onloadend = () => resolve(reader2.result);
+                  reader2.onerror = reject;
+                  reader2.readAsDataURL(blob);
+                }, file.type, 0.8);
+              };
+              img.onerror = reject;
+            };
+            reader.onerror = reject;
+          });
+        };
+
+        let feedbackImgUrl = isPlaceholder ? '' : preview.src;
+        if (fileInput && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const compressedDataUrl = await compressImage(file);
+          const base64String = compressedDataUrl.split(',')[1];
+          const uploadResponse = await fetch('/api/upload-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              data: base64String,
+              mimeType: file.type,
+              name: file.name
+            })
+          });
+          const uploadResult = await uploadResponse.json();
+          if (uploadResult.success) {
+            feedbackImgUrl = uploadResult.url;
+          } else {
+            showLoading(false);
+            errorMessage.classList.remove('hidden');
+            errorMessage.textContent = 'خطأ في رفع الصورة: ' + uploadResult.error;
+            return;
+          }
+        }
+
+        const updateResponse = await fetch('/api/update-record', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ id, status, feedback, feedbackImg: feedbackImgUrl })
+        });
+        const updateResult = await updateResponse.json();
+        showLoading(false);
+        if (updateResult.success) {
+          closePopup();
+          loadContent();
+          await fetch('/sendNotification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: 'تحديث تقرير',
+              body: `تم تحديث التقرير رقم ${id} إلى الحالة: ${translateStatus(status)}`,
+              url: window.location.href
+            })
+          });
+        } else {
+          errorMessage.classList.remove('hidden');
+          errorMessage.textContent = 'خطأ في التحديث: ' + (updateResult.error || 'غير معروف');
+        }
+      } catch (error) {
+        showLoading(false);
+        console.error('saveChanges error:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في الحفظ: ' + error.message;
+      }
+    }
+
+    function translateStatus(statusEn) {
+      const statusMap = {
+        'new': 'جديد',
+        'done': 'منتهي',
+        'pending': 'معلق',
+        'cancelled': 'ملغى',
+        'ongoing': 'جاري'
+      };
+      return statusMap[statusEn.toLowerCase().trim()] || 'غير معروف';
+    }
+
+    try {
+      document.getElementById('status-filter').addEventListener('change', () => {
+        currentPage = 1;
+        loadContent();
+      });
+      document.getElementById('date-filter').addEventListener('change', () => {
+        toggleDatePicker();
+        if (document.getElementById('date-filter').value !== 'custom') {
+          currentPage = 1;
+          loadContent();
+        }
+      });
+      document.getElementById('go-button').addEventListener('click', () => {
+        currentPage = 1;
+        loadContent();
+      });
+      document.getElementById('search-button').addEventListener('click', () => {
+        currentPage = 1;
+        loadContent();
+      });
+      document.getElementById('search-input').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          currentPage = 1;
+          loadContent();
+        }
+      });
+      document.getElementById('close-popup').addEventListener('click', closePopup);
+      document.getElementById('close-popup-buttom').addEventListener('click', closePopup);
+      document.getElementById('pagination').addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (button && !button.disabled) {
+          const pageNumber = parseInt(button.getAttribute('onclick').match(/\d+/)[0], 10);
+          if (!isNaN(pageNumber)) {
+            currentPage = pageNumber;
+            loadContent();
+          }
+        }
+      });
+      document.getElementById('registerPush').addEventListener('click', registerForPush);
+      toggleDatePicker();
+      checkLoginStatus();
+      initializeFirebase().catch((error) => {
+        console.error('Firebase initialization failed:', error);
+        errorMessage.classList.remove('hidden');
+        errorMessage.textContent = 'خطأ في تهيئة Firebase: ' + error.message;
+      });
+    } catch (error) {
+      console.error('Initialization error:', error);
+      errorMessage.classList.remove('hidden');
+      errorMessage.textContent = 'خطأ في التهيئة: ' + error.message;
     }
   </script>
 </body>
