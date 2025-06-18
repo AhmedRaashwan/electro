@@ -7,7 +7,6 @@ const TOKENS_SHEET_NAME = process.env.TOKENS_SHEET_NAME;
 
 async function sendPushNotification(title = 'Test Notification', body = 'This is a test message', url = null) {
   try {
-    // Initialize Firebase Admin SDK
     if (!admin.apps.length) {
       admin.initializeApp({
         credential: admin.credential.cert(process.env.GOOGLE_APPLICATION_CREDENTIALS),
