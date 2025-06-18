@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Push Notification Registration</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <h1>Register for Push Notifications</h1>
+  <button onclick="registerForPush()">Register</button>
+  <p id="status"></p>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "electro-12753.firebaseapp.com",
+      projectId: "electro-12753",
+      storageBucket: "electro-12753.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    async function registerForPush() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          document.getElementById('status').innerText = 'Notification permission denied';
+          return;
+        }
+
+        const token = await messaging.getToken({ vapidKey: 'BJymDhXcSBI5afnuuDumd_CTyg15QDL7dXRQn9Zrilb3INFV5db4IriJSvDL9ki77qJGz__Twq3p5Kzkmb3Pu4w' });
+        if (token) {
+          const response = await fetch('/storeToken', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `token=${encodeURIComponent(token)}`
+          });
+          const result = await response.text();
+          document.getElementById('status').innerText = result;
+        } else {
+          document.getElementById('status').innerText = 'No registration token available';
+        }
+      } catch (error) {
+        document.getElementById('status').innerText = `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
