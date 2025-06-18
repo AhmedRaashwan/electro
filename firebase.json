@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "electro-12753",  // Your actual Firebase Hosting site name here
     "public": "public",
     "ignore": [
       "firebase.json",
