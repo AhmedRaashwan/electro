@@ -1,0 +1,21 @@
+{
+  "name": "fcm-notification-server",
+  "version": "1.0.0",
+  "description": "Node.js server for FCM push notifications and token storage",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "firebase-admin": "^12.5.0",
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "author": "",
+  "license": "MIT"
+}
