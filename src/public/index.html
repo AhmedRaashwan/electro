@@ -5,27 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>إدارة التقارير</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK: Fallback to local files if CDN fails -->
-  <script>
-    window.firebaseLoaded = false;
-    function loadFirebaseFallback() {
-      if (!window.firebaseLoaded && !window.firebase) {
-        console.warn('Firebase CDN failed, loading local fallback');
-        const script1 = document.createElement('script');
-        script1.src = '/firebase-app-compat.js';
-        script1.onload = () => {
-          const script2 = document.createElement('script');
-          script2.src = '/firebase-messaging-compat.js';
-          script2.onload = () => { window.firebaseLoaded = true; };
-          document.head.appendChild(script2);
-        };
-        script1.onerror = () => console.error('Failed to load local Firebase scripts');
-        document.head.appendChild(script1);
-      }
-    }
-  </script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" onload="window.firebaseLoaded = true;" onerror="loadFirebaseFallback();"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js" onload="window.firebaseLoaded = true;" onerror="loadFirebaseFallback();"></script>
+  <script src="/firebase-app-compat.js"></script>
+  <script src="/firebase-messaging-compat.js"></script>
   <style>
     .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
     .progress-bar { width: 50%; height: 20px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
@@ -147,6 +128,7 @@
     </div>
 
   <script>
+    const BACKEND_URL = 'https://your-backend-url.com'; // Replace with your actual backend URL
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "electro-12753.firebaseapp.com",
@@ -193,23 +175,18 @@
 
     async function initializeFirebase() {
       return new Promise((resolve, reject) => {
-        const checkFirebase = () => {
-          if (window.firebaseLoaded && window.firebase) {
-            try {
-              firebase.initializeApp(firebaseConfig);
-              const messaging = firebase.messaging();
-              registerPushButton.disabled = false;
-              resolve(messaging);
-            } catch (error) {
-              reject(error);
-            }
-          } else if (!window.firebaseLoaded) {
-            setTimeout(checkFirebase, 100);
-          } else {
-            reject(new Error('Firebase SDK failed to load'));
+        if (window.firebase) {
+          try {
+            firebase.initializeApp(firebaseConfig);
+            const messaging = firebase.messaging();
+            registerPushButton.disabled = false;
+            resolve(messaging);
+          } catch (error) {
+            reject(error);
           }
-        };
-        checkFirebase();
+        } else {
+          reject(new Error('Firebase SDK failed to load'));
+        }
       });
     }
 
@@ -224,11 +201,12 @@
         }
         const token = await messaging.getToken({ vapidKey: 'BJymDhXcSBI5afnuuDumd_CTyg15QDL7dXRQn9Zrilb3INFV5db4IriJSvDL9ki77qJGz__Twq3p5Kzkmb3Pu4w' });
         if (token) {
-          const response = await fetch('/storeToken', {
+          const response = await fetch(`${BACKEND_URL}/storeToken`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token })
           });
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
           const result = await response.text();
           alert(result);
         } else {
@@ -245,9 +223,10 @@
         const displayName = localStorage.getItem('displayname');
         if (displayName) {
           showLoading(true);
-          const response = await fetch('/api/check-auth', {
+          const response = await fetch(`${BACKEND_URL}/api/check-auth`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
           });
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
           const data = await response.json();
           showLoading(false);
           if (data.success) {
@@ -294,11 +273,12 @@
       loginFormInner.classList.add('opacity-50', 'pointer-events-none');
       showLoading(true);
       try {
-        const response = await fetch('/api/login', {
+        const response = await fetch(`${BACKEND_URL}/api/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
         const data = await response.json();
         showLoading(false);
         loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
@@ -312,7 +292,7 @@
           loginFormInner.reset();
           loadContent();
         } else {
-          loginStatus.textContent = data.message;
+          loginStatus.textContent = data.message || 'فشل تسجيل الدخول';
         }
       } catch (error) {
         showLoading(false);
@@ -369,9 +349,10 @@
           searchQuery,
           ...(dateRangeFilter && { fromDate: dateRangeFilter.fromDate, toDate: dateRangeFilter.toDate })
         });
-        const response = await fetch(`/api/content?${queryParams}`, {
+        const response = await fetch(`${BACKEND_URL}/api/content?${queryParams}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         showLoading(false);
         if (!data.success) {
@@ -403,9 +384,10 @@
       try {
         console.log('openPopup: id=', id, 'type=', typeof id);
         showLoading(true);
-        const response = await fetch(`/api/popup/${id}?page=${currentPage}`, {
+        const response = await fetch(`${BACKEND_URL}/api/popup/${id}?page=${currentPage}`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const data = await response.json();
         showLoading(false);
         if (!data.success) {
@@ -563,7 +545,7 @@
           const file = fileInput.files[0];
           const compressedDataUrl = await compressImage(file);
           const base64String = compressedDataUrl.split(',')[1];
-          const uploadResponse = await fetch('/api/upload-image', {
+          const uploadResponse = await fetch(`${BACKEND_URL}/api/upload-image`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -575,6 +557,7 @@
               name: file.name
             })
           });
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
           const uploadResult = await uploadResponse.json();
           if (uploadResult.success) {
             feedbackImgUrl = uploadResult.url;
@@ -586,7 +569,7 @@
           }
         }
 
-        const updateResponse = await fetch('/api/update-record', {
+        const updateResponse = await fetch(`${BACKEND_URL}/api/update-record`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -594,12 +577,13 @@
           },
           body: JSON.stringify({ id, status, feedback, feedbackImg: feedbackImgUrl })
         });
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const updateResult = await updateResponse.json();
         showLoading(false);
         if (updateResult.success) {
           closePopup();
           loadContent();
-          await fetch('/sendNotification', {
+          await fetch(`${BACKEND_URL}/sendNotification`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
