@@ -1,14 +1,15 @@
-importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
+
+  importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js');
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
+  apiKey: "AIzaSyCRKhcp_SHx3JhK9voZdLUEYjgDsd8UFS8",
   authDomain: "electro-12753.firebaseapp.com",
   projectId: "electro-12753",
   storageBucket: "electro-12753.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  messagingSenderId: "34147042347",
+  appId: "1:34147042347:web:e358bb7763a6afff03566e",
+  measurementId: "G-MXBD5C0ZDJ"
 };
 
 firebase.initializeApp(firebaseConfig);
