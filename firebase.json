@@ -4,6 +4,18 @@
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
+        "source": "/firebase-app-compat.js",
+        "destination": "/firebase-app-compat.js"
+      },
+      {
+        "source": "/firebase-messaging-compat.js",
+        "destination": "/firebase-messaging-compat.js"
+      },
+      {
+        "source": "/firebase-messaging-sw.js",
+        "destination": "/firebase-messaging-sw.js"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
