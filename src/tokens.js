@@ -30,7 +30,6 @@ async function storeToken(token) {
       return `Error: Sheet "${TOKENS_SHEET_NAME}" not found`;
     }
 
-    // Get existing tokens
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${TOKENS_SHEET_NAME}!A:A`,
@@ -38,7 +37,6 @@ async function storeToken(token) {
 
     let values = response.data.values || [];
     if (!values.length) {
-      // First token, add headers
       await sheets.spreadsheets.values.append({
         spreadsheetId: SPREADSHEET_ID,
         range: `${TOKENS_SHEET_NAME}!A:B`,
