@@ -1,38 +1,15 @@
 {
   "hosting": {
-    "public": "src/public",
+    "public": "build",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [
       {
-        "source": "/firebase-app-compat.js",
-        "destination": "/firebase-app-compat.js"
-      },
-      {
-        "source": "/firebase-messaging-compat.js",
-        "destination": "/firebase-messaging-compat.js"
-      },
-      {
-        "source": "/firebase-messaging-sw.js",
-        "destination": "/firebase-messaging-sw.js"
+        "source": "/api/**",
+        "function": "app"
       },
       {
         "source": "**",
         "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "**/*.js",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "application/javascript"
-          },
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          }
-        ]
       }
     ]
   }
