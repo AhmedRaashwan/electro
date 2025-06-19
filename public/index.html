@@ -293,60 +293,65 @@
       }
     }
 
-    loginFormInner.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+   loginFormInner.addEventListener('submit', async (event) => {
+    event.preventDefault();
 
-      if (!email || !password) {
-        loginStatus.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
-        return;
-      }
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
 
-      loginStatus.textContent = 'جاري تسجيل الدخول...';
-      loginFormInner.classList.add('opacity-50', 'pointer-events-none');
-      showLoading(true);
+    if (!email || !password) {
+      loginStatus.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
+      return;
+    }
+
+    loginStatus.textContent = 'جاري تسجيل الدخول...';
+    loginFormInner.classList.add('opacity-50', 'pointer-events-none');
+    showLoading(true);
+
+    try {
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          email,
+          password
+        })
+      });
+
+      const text = await response.text();
+      console.log('Login API Response:', text);
+      let data;
+
       try {
-        console.log('Fetching:', BACKEND_URL);
-        console.log('Request body:', JSON.stringify({ action: 'login', email, password }));
-        const response = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'login', email, password })
-        });
-        console.log('Response status:', response.status, response.statusText);
-        const text = await response.text();
-        console.log('Response body:', text);
-        let data;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          throw new Error(`Invalid JSON response: ${text}`);
-        }
-        console.log('Response data:', data);
-        showLoading(false);
-        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
-        if (data.success) {
-          localStorage.setItem('displayname', data.displayName);
-          localStorage.setItem('role', data.role || '');
-          localStorage.setItem('token', 'google-sheets-token');
-          welcomeMessage.textContent = `مرحبًا, ${data.displayName}`;
-          loginForm.style.display = 'none';
-          mainContent.classList.remove('hidden');
-          loginStatus.textContent = '';
-          loginFormInner.reset();
-          loadContent();
-        } else {
-          loginStatus.textContent = data.message || 'فشل تسجيل الدخول';
-        }
-      } catch (error) {
-        showLoading(false);
-        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
-        loginStatus.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
-        console.error('Login error details:', error);
-        console.error('Error stack:', error.stack);
+        data = JSON.parse(text);
+      } catch (err) {
+        throw new Error('الاستجابة غير صالحة: ' + text);
       }
-    });
+
+      showLoading(false);
+      loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+
+      if (data.success) {
+        localStorage.setItem('displayname', data.displayName);
+        localStorage.setItem('role', data.role || '');
+        localStorage.setItem('token', 'google-sheets-token'); // optional
+        welcomeMessage.textContent = `مرحبًا, ${data.displayName}`;
+        loginForm.style.display = 'none';
+        mainContent.classList.remove('hidden');
+        loginStatus.textContent = '';
+        loginFormInner.reset();
+        loadContent();
+      } else {
+        loginStatus.textContent = data.message || 'فشل تسجيل الدخول';
+      }
+    } catch (error) {
+      showLoading(false);
+      loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+      loginStatus.textContent = 'حدث خطأ أثناء تسجيل الدخول: ' + error.message;
+      console.error('Login error:', error);
+    }
+  });
 
     logoutButton.addEventListener('click', () => {
       try {
