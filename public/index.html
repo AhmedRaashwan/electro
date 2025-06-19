@@ -282,47 +282,54 @@
       }
     }
 
-    loginFormInner.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+loginFormInner.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value.trim();
 
-      if (!email || !password) {
-        loginStatus.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
-        return;
-      }
+  if (!email || !password) {
+    loginStatus.textContent = 'الرجاء إدخال البريد الإلكتروني وكلمة المرور';
+    return;
+  }
 
-      loginStatus.textContent = 'جاري تسجيل الدخول...';
-      loginFormInner.classList.add('opacity-50', 'pointer-events-none');
-      showLoading(true);
-      try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await response.json();
-        showLoading(false);
-        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
-        if (data.success) {
-          localStorage.setItem('displayname', data.displayName);
-          localStorage.setItem('token', response.headers.get('authorization')?.split(' ')[1] || '');
-          welcomeMessage.textContent = `مرحبًا, ${data.displayName}`;
-          loginForm.style.display = 'none';
-          mainContent.classList.remove('hidden');
-          loginStatus.textContent = '';
-          loginFormInner.reset();
-          loadContent();
-        } else {
-          loginStatus.textContent = data.message;
-        }
-      } catch (error) {
-        showLoading(false);
-        loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
-        loginStatus.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
-        console.error('Login error:', error);
-      }
+  loginStatus.textContent = 'جاري تسجيل الدخول...';
+  loginFormInner.classList.add('opacity-50', 'pointer-events-none');
+  showLoading(true);
+  try {
+    console.log('Fetching:', `${BACKEND_URL}/api/login`); // Debug log
+    const response = await fetch(`${BACKEND_URL}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
+    console.log('Response status:', response.status, response.statusText); // Debug log
+    if (!response.ok) {
+      const text = await response.text();
+      console.log('Response body:', text); // Debug log
+      throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    showLoading(false);
+    loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+    if (data.success) {
+      localStorage.setItem('displayname', data.displayName);
+      localStorage.setItem('token', response.headers.get('authorization')?.split(' ')[1] || '');
+      welcomeMessage.textContent = `مرحبًا, ${data.displayName}`;
+      loginForm.style.display = 'none';
+      mainContent.classList.remove('hidden');
+      loginStatus.textContent = '';
+      loginFormInner.reset();
+      loadContent();
+    } else {
+      loginStatus.textContent = data.message || 'فشل تسجيل الدخول';
+    }
+  } catch (error) {
+    showLoading(false);
+    loginFormInner.classList.remove('opacity-50', 'pointer-events-none');
+    loginStatus.textContent = 'خطأ في تسجيل الدخول: ' + error.message;
+    console.error('Login error:', error);
+  }
+});
 
     logoutButton.addEventListener('click', () => {
       try {
