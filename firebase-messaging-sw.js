@@ -18,5 +18,5 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(title, {
     body,
     icon: '/icon.png' // Optional
-  });
+  }); 
 });
