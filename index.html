@@ -26,7 +26,7 @@
       يرجى تفعيل الإشعارات إذا كنت ترغب في البقاء على اطلاع بأحدث التقارير
     </p>
     <button 
-      onclick="requestPermission()" 
+      id="enable-notifications" 
       class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition duration-300"
     >
       <span class="text-lg">🔔</span> Enable Notifications
@@ -34,29 +34,30 @@
   </div>
 
   <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
-      authDomain: "notify-raa.firebaseapp.com",
-      projectId: "notify-raa",
-      storageBucket: "notify-raa.firebasestorage.app",
-      messagingSenderId: "767633213120",
-      appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
-      measurementId: "G-SQ4T5Q0WN0"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
-
-    // Replace with your actual Apps Script Web App URL
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzQIbOcyeLTXumyF7eWK_ks4r2pQ0EFtzV1Na98wYf_30J1AN89xRljbWqKCONDCFCseg/exec";
-
-    // CORS proxy for development only (remove in production)
-    const corsProxy = "https://cors-anywhere.herokuapp.com/";
-
-    async function requestPermission() {
+    // Ensure requestPermission is in the global scope
+    window.requestPermission = async function() {
       try {
+        // Firebase config
+        const firebaseConfig = {
+          apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
+          authDomain: "notify-raa.firebaseapp.com",
+          projectId: "notify-raa",
+          storageBucket: "notify-raa.firebasestorage.app",
+          messagingSenderId: "767633213120",
+          appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
+          measurementId: "G-SQ4T5Q0WN0"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        // Replace with your actual Apps Script Web App URL
+        const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzQIbOcyeLTXumyF7eWK_ks4r2pQ0EFtzV1Na98wYf_30J1AN89xRljbWqKCONDCFCseg/exec";
+
+        // CORS proxy for development only (remove in production)
+        const corsProxy = "https://cors-anywhere.herokuapp.com/";
+
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           alert("❌ Notification permission denied");
@@ -83,7 +84,7 @@
         const result = await response.text();
         console.log("🟢 Server response:", result);
 
-        if понимаете response.ok) {
+        if (response.ok) {
           alert("✅ Token registered successfully!");
         } else {
           alert("⚠️ Server responded with an error. Check console.");
@@ -92,14 +93,17 @@
         console.error("❌ Failed to register token:", error);
         alert("❌ Error occurred while saving the token.");
       }
-    }
+    };
 
     // Handle foreground messages
-    messaging.onMessage((payload) => {
+    firebase.messaging().onMessage((payload) => {
       console.log("📬 Foreground message:", payload);
       const { title, body } = payload.notification || {};
       alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
     });
+
+    // Add event listener to the button
+    document.getElementById('enable-notifications').addEventListener('click', requestPermission);
   </script>
 </body>
 </html>
