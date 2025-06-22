@@ -8,10 +8,10 @@
 </head>
 <body>
   <h2>Firebase Push Notifications Demo</h2>
-  <button onclick="requestPermission()">🔔 Enable Notifications</button>
+  <button onclick="initPush()">🔔 Enable Notifications</button>
 
   <script>
-    // ✅ Firebase Config - from your Firebase Web App
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
       authDomain: "notify-raa.firebaseapp.com",
@@ -26,9 +26,14 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    // ✅ Request permission and send token to server
-    async function requestPermission() {
+    async function initPush() {
       try {
+        // Register the service worker manually from the correct subfolder
+        const swRegistration = await navigator.serviceWorker.register('/electro/firebase-messaging-sw.js');
+        console.log("✅ Service Worker registered:", swRegistration);
+
+        messaging.useServiceWorker(swRegistration);
+
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           alert("❌ Notification permission denied");
@@ -36,12 +41,12 @@
         }
 
         const token = await messaging.getToken({
-          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0"
+          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+          serviceWorkerRegistration: swRegistration
         });
 
         console.log("🎯 FCM Token:", token);
 
-        // ✅ Send token to Google Apps Script Web App
         const response = await fetch("https://script.google.com/macros/s/AKfycbxEEPQrvRungVWfPbqq2p03_WO0_yy7krog-PfNUkEdnBQCLxc6YkdmNy5I_CpNIptPvg/exec", {
           method: "POST",
           headers: {
