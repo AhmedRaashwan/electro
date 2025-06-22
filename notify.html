@@ -48,7 +48,7 @@
         console.log("🎯 FCM Token:", token);
 
         // ✅ Send token to Apps Script Web App
-        const response = await fetch("https://script.google.com/macros/s/AKfycbxEEPQrvRungVWfPbqq2p03_WO0_yy7krog-PfNUkEdnBQCLxc6YkdmNy5I_CpNIptPvg/exec", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbxXFR6VwfMCEC3SQvaj52FV4rXWncFZJ8ziqPH4hzhqnkz5DWWmGGkbcThRpCIaBntoCQ/exec", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ token })
