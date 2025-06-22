@@ -10,7 +10,89 @@
 <body>
   <h2>Firebase Push Notifications Demo</h2>
   <button onclick="requestPermission()">🔔 Enable Notifications</button>
-
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6; /* light gray */
+      color: #111827; /* dark text */
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1f2937; /* dark bg */
+        color: #f9fafb; /* light text */
+      }
+      .container {
+        background-color: #111827; /* darker container */
+        color: #f9fafb;
+      }
+      .btn {
+        background-color: #2563eb; /* blue-600 */
+      }
+      .btn:hover {
+        background-color: #1e40af; /* blue-700 */
+      }
+      p {
+        color: #d1d5db; /* lighter gray */
+      }
+    }
+    .container {
+      background-color: #fff;
+      max-width: 400px;
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: inherit;
+    }
+    p {
+      font-size: 14px;
+      color: #4b5563; /* gray-600 */
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 0;
+      background-color: #2563eb; /* blue-600 */
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .btn:hover {
+      background-color: #1e40af; /* blue-700 */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Firebase Push Notifications</h2>
+    <p>يرجى تفعيل الإشعارات إذا كنت ترغب في البقاء على اطلاع بأحدث التقارير</p>
+    <button id="enable-notifications" onclick="requestPermission() "class="btn">
+      <span style="font-size: 20px;">🔔</span> Enable Notifications
+    </button>
+  </div>
   <script>
     // Firebase config
     const firebaseConfig = {
