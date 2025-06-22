@@ -43,7 +43,7 @@
 
         // Register service worker with correct path
         // Ensure firebase-messaging-sw.js is in the root directory of your GitHub Pages
-        const swRegistration = await navigator.serviceWorker.register('electro/firebase-messaging-sw.js');
+        const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
         console.log("✅ Service Worker registered:", swRegistration);
 
         const token = await messaging.getToken({
