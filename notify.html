@@ -40,11 +40,11 @@ async function requestPermission() {
       return;
     }
 
-    // Register service worker from correct subdirectory path
+    // Register service worker with correct path
     const swRegistration = await navigator.serviceWorker.register('/electro/firebase-messaging-sw.js');
     console.log("✅ Service Worker registered:", swRegistration);
 
-    messaging.useServiceWorker(swRegistration);
+    // No need to call messaging.useServiceWorker()
 
     const token = await messaging.getToken({
       vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0"
@@ -71,6 +71,7 @@ async function requestPermission() {
     alert("❌ Error occurred while saving the token.");
   }
 }
+
 
 
     // Handle foreground messages
