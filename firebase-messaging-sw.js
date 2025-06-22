@@ -4,7 +4,7 @@ importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-com
 firebase.initializeApp({
   apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
   authDomain: "notify-raa.firebaseapp.com",
-  projectId: "notify-raa0",
+  projectId: "notify-raa",
   messagingSenderId: "767633213120",
   appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
 });
