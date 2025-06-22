@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notify | Firebase Push</title>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
@@ -29,50 +30,48 @@
     // Replace with your actual Apps Script Web App URL
     const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzQIbOcyeLTXumyF7eWK_ks4r2pQ0EFtzV1Na98wYf_30J1AN89xRljbWqKCONDCFCseg/exec";
 
-    // CORS proxy for development only
+    // CORS proxy for development only (remove in production)
     const corsProxy = "https://cors-anywhere.herokuapp.com/";
 
-async function requestPermission() {
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      alert("❌ Notification permission denied");
-      return;
+    async function requestPermission() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert("❌ Notification permission denied");
+          return;
+        }
+
+        // Register service worker with correct path
+        // Ensure firebase-messaging-sw.js is in the root directory of your GitHub Pages
+        const swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+        console.log("✅ Service Worker registered:", swRegistration);
+
+        const token = await messaging.getToken({
+          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+          serviceWorkerRegistration: swRegistration
+        });
+
+        console.log("🎯 FCM Token:", token);
+
+        const response = await fetch(corsProxy + appsScriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const result = await response.text();
+        console.log("🟢 Server response:", result);
+
+        if (response.ok) {
+          alert("✅ Token registered successfully!");
+        } else {
+          alert("⚠️ Server responded with an error. Check console.");
+        }
+      } catch (error) {
+        console.error("❌ Failed to register token:", error);
+        alert("❌ Error occurred while saving the token.");
+      }
     }
-
-    // Register service worker with correct path
-    const swRegistration = await navigator.serviceWorker.register('/electro/firebase-messaging-sw.js');
-    console.log("✅ Service Worker registered:", swRegistration);
-
-    // No need to call messaging.useServiceWorker()
-
-    const token = await messaging.getToken({
-      vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0"
-    });
-
-    console.log("🎯 FCM Token:", token);
-
-    const response = await fetch(corsProxy + appsScriptUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token })
-    });
-
-    const result = await response.text();
-    console.log("🟢 Server response:", result);
-
-    if (response.ok) {
-      alert("✅ Token registered successfully!");
-    } else {
-      alert("⚠️ Server responded with an error. Check console.");
-    }
-  } catch (error) {
-    console.error("❌ Failed to register token:", error);
-    alert("❌ Error occurred while saving the token.");
-  }
-}
-
-
 
     // Handle foreground messages
     messaging.onMessage((payload) => {
