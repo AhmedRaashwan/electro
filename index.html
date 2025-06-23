@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تفعيل الاشعارات</title>
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
-</head>
-<body>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
   <style>
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6; /* light gray */
-      color: #111827; /* dark text */
+      background-color: #f3f4f6;
+      color: #111827;
       margin: 0;
       padding: 16px;
       min-height: 100vh;
@@ -24,21 +22,24 @@
     }
     @media (prefers-color-scheme: dark) {
       body {
-        background-color: #1f2937; /* dark bg */
-        color: #f9fafb; /* light text */
+        background-color: #1f2937;
+        color: #f9fafb;
       }
       .container {
-        background-color: #111827; /* darker container */
+        background-color: #111827;
+        color: #f9fafb;
+      }
+      h2 {
         color: #f9fafb;
       }
       .btn {
-        background-color: #2563eb; /* blue-600 */
+        background-color: #2563eb;
       }
       .btn:hover {
-        background-color: #1e40af; /* blue-700 */
+        background-color: #1e40af;
       }
       p {
-        color: #d1d5db; /* lighter gray */
+        color: #d1d5db;
       }
     }
     .container {
@@ -59,7 +60,7 @@
     }
     p {
       font-size: 14px;
-      color: #4b5563; /* gray-600 */
+      color: #4b5563;
       margin-bottom: 24px;
     }
     .btn {
@@ -69,7 +70,7 @@
       gap: 8px;
       width: 100%;
       padding: 12px 0;
-      background-color: #2563eb; /* blue-600 */
+      background-color: #2563eb;
       color: #fff;
       font-weight: 600;
       font-size: 16px;
@@ -80,7 +81,42 @@
       user-select: none;
     }
     .btn:hover {
-      background-color: #1e40af; /* blue-700 */
+      background-color: #1e40af;
+    }
+    .btn:disabled {
+      background-color: #6b7280;
+      cursor: not-allowed;
+    }
+    .button-icon,
+    .loading-icon {
+      font-size: 20px;
+    }
+    .loading-icon {
+      display: none;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #fff;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .cors-notice {
+      background: #f9f9f9;
+      border-left: 4px solid #007bff;
+      padding: 16px;
+      margin: 20px 0;
+      font-family: Arial, sans-serif;
+    }
+    .cors-notice p {
+      margin: 8px 0;
+    }
+    .cors-notice a {
+      color: #007bff;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -88,26 +124,36 @@
   <div class="container">
     <h2>نظام التقارير الفنية الآلي</h2>
     <br>
-        <h2> تفعيل الاشعارات</h2>
+    <h2>تفعيل الاشعارات</h2>
     <h2>يمكنك تفعيل الإشعارات إذا كنت ترغب في البقاء على اطلاع بأحدث التقارير</h2>
-    <button id="enable-notifications" onclick="requestPermission() "class="btn">
-      <span style="font-size: 20px;">🔔</span> تفعيل الإشعارات
+    <button id="enable-notifications" onclick="requestPermission()" class="btn" aria-label="تفعيل الإشعارات">
+      <span id="button-icon" class="button-icon">🔔</span>
+      <span id="button-text">تفعيل الإشعارات</span>
+      <span id="loading-icon" class="loading-icon"></span>
     </button>
   </div>
-  <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
-  <strong>⚠️ Notice:</strong>
-  <p style="margin: 8px 0;">
-    If you're experiencing a CORS error, you can temporarily enable access by visiting:
-    <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
-      https://cors-anywhere.herokuapp.com/corsdemo
-    </a>
-  </p>
-  <p style="margin: 0; font-size: 0.9em; color: #555;">
-    After clicking "Request temporary access", your IP will be allowed for about 1 hour.
-  </p>
-</div>
+  <div id="cors-notice" class="cors-notice" style="display: none;">
+    <strong>⚠️ Notice:</strong>
+    <p>
+      If you're experiencing a CORS error, you can temporarily enable access by visiting:
+      <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank">
+        https://cors-anywhere.herokuapp.com/corsdemo
+      </a>
+    </p>
+    <p style="font-size: 0.9em; color: #555;">
+      After clicking "Request temporary access", your IP will be allowed for about 1 hour.
+    </p>
+  </div>
 
   <script>
+    // Environment flag (set to false in production)
+    const isDevelopment = true; // TODO: Set to false in production
+
+    // Show CORS notice only in development
+    if (isDevelopment) {
+      document.getElementById('cors-notice').style.display = 'block';
+    }
+
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
@@ -120,62 +166,102 @@
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+    if (typeof firebase !== 'undefined') {
+      firebase.initializeApp(firebaseConfig);
+      const messaging = firebase.messaging();
 
-    // Replace with your actual Apps Script Web App URL
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
+      let isProcessing = false;
 
-    // CORS proxy for development only (remove in production)
-    const corsProxy = "https://cors-anywhere.herokuapp.com/";
-
-    async function requestPermission() {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          alert("❌ Notification permission denied");
+      async function requestPermission() {
+        if (isProcessing || !('Notification' in window) || !('serviceWorker' in navigator)) {
+          alert("❌ This browser does not support notifications.");
           return;
         }
 
-        // Register service worker with correct path
-        // Ensure firebase-messaging-sw.js is in the root directory of your GitHub Pages
-        const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
-        console.log("✅ Service Worker registered:", swRegistration);
+        const button = document.getElementById('enable-notifications');
+        const buttonIcon = document.getElementById('button-icon');
+        const buttonText = document.getElementById('button-text');
+        const loadingIcon = document.getElementById('loading-icon');
 
-        const token = await messaging.getToken({
-          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
-          serviceWorkerRegistration: swRegistration
-        });
+        // Show loading state
+        isProcessing = true;
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        buttonIcon.style.display = 'none';
+        buttonText.style.display = 'none';
+        loadingIcon.style.display = 'inline-block';
 
-        console.log("🎯 FCM Token:", token);
+        try {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            alert("❌ Notification permission denied");
+            return;
+          }
 
-        const response = await fetch(corsProxy + appsScriptUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token })
-        });
+          const swRegistration = await navigator.serviceWorker.register('/electro/firebase-messaging-sw.js');
+          console.log("✅ Service Worker registered:", swRegistration);
 
-        const result = await response.text();
-        console.log("🟢 Server response:", result);
+          const token = await messaging.getToken({
+            vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+            serviceWorkerRegistration: swRegistration
+          });
 
-        if (response.ok) {
-          alert("✅ Token registered successfully!");
-        } else {
-          alert("⚠️ Server responded with an error. Check console.");
+          console.log("🎯 FCM Token:", token);
+
+          // TODO: Remove corsProxy in production and configure server-side CORS
+          const corsProxy = isDevelopment ? "https://cors-anywhere.herokuapp.com/" : "";
+          const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
+
+          const response = await fetch(corsProxy + appsScriptUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+          });
+
+          const result = await response.text();
+          console.log("🟢 Server response:", result);
+
+          if (response.ok) {
+            alert("✅ Token registered successfully!");
+          } else {
+            alert(`⚠️ Server error: ${result || 'Unknown error'}`);
+            if (isDevelopment) {
+              window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
+            }
+          }
+        } catch (error) {
+          console.error("❌ Failed to register token:", error);
+          const isCorsError = error.message.includes('cross-origin') || error.name === 'TypeError';
+          if (isDevelopment && isCorsError) {
+            alert("❌ CORS error occurred. Redirecting to CORS page...");
+            window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
+          } else {
+            alert(`❌ Error: ${error.message || 'Failed to save token'}`);
+          }
+        } finally {
+          resetButtonState();
         }
-      } catch (error) {
-        console.error("❌ Failed to register token:", error);
-        alert("❌ Error occurred while saving the token.");
-      }
-    }
 
-    // Handle foreground messages
-    messaging.onMessage((payload) => {
-      console.log("📬 Foreground message:", payload);
-      const { title, body } = payload.notification || {};
-alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
+        function resetButtonState() {
+          isProcessing = false;
+          button.disabled = false;
+          button.setAttribute('aria-busy', 'false');
+          buttonIcon.style.display = 'inline';
+          buttonText.style.display = 'inline';
+          loadingIcon.style.display = 'none';
+        }
+      }
+
+      // Handle foreground messages
+      messaging.onMessage((payload) => {
+        console.log("📬 Foreground message:", payload);
+        const { title, body } = payload.notification || {};
+        alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
+      });
+    } else {
+      console.error("Firebase not loaded");
+      alert("❌ Notifications are not supported in this environment.");
     }
-                       );
   </script>
 </body>
 </html>
