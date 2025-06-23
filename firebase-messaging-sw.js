@@ -34,7 +34,7 @@ messaging.onBackgroundMessage(function(payload) {
 
   const notificationTitle = payload.data.title;
   const notificationBody = payload.data.body;
-  const clickAction = payload.data.click_action || 'http://reports.infy.uk/reports.html';
+  const clickAction ='http://reports.infy.uk/reports.html';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
@@ -49,7 +49,7 @@ messaging.onBackgroundMessage(function(payload) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
-  const targetUrl = event.notification.data?.url || 'http://reports.infy.uk/reports.html';
+  const targetUrl = 'http://reports.infy.uk/reports.html';
   // console.log("🔗 Opening URL:", targetUrl);
 
   event.waitUntil(
