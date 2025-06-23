@@ -1,6 +1,7 @@
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js");
 
+// Initialize Firebase with your project's configuration
 firebase.initializeApp({
   apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
   authDomain: "notify-raa.firebaseapp.com",
@@ -9,56 +10,40 @@ firebase.initializeApp({
   appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
 });
 
+// Get the Messaging service instance
 const messaging = firebase.messaging();
 
-// Handle installation and skip waiting
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    self.skipWaiting().then(() => {
-      // console.log("Service Worker installed and activated immediately");
-    })
-  );
-});
-
-// Handle activation and take control of clients
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    self.clients.claim().then(() => {
-      // console.log("Service Worker activated and controlling clients");
-    })
-  );
-});
-
+// Listen for background messages
 messaging.onBackgroundMessage(function(payload) {
-  // console.log("📦 Background message received:", payload);
+  console.log("📦 Background message received:", payload);
 
   const notificationTitle = payload.data.title;
   const notificationBody = payload.data.body;
-  const clickAction = payload.data.click_action || 'http://reports.infy.uk/reports.html';
+  const clickAction = payload.data.click_action || '/'; // 🔗 Default or provided link
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: 'https://ahmedraashwan.github.io/electro/favicon.ico',
-    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA',
+    icon: '/icon.png',
     data: {
       url: clickAction
     }
   });
 });
 
+// Handle clicks on the notification
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-
-  const targetUrl = event.notification.data?.url || 'http://reports.infy.uk/reports.html';
-  // console.log("🔗 Opening URL:", targetUrl);
+  const targetUrl = event.notification.data?.url || '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Reuse open tab if exists
       for (let client of windowClients) {
         if (client.url === targetUrl && 'focus' in client) {
           return client.focus();
         }
       }
+      // Else open a new tab
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
