@@ -11,6 +11,24 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Handle installation and skip waiting
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    self.skipWaiting().then(() => {
+      // console.log("Service Worker installed and activated immediately");
+    })
+  );
+});
+
+// Handle activation and take control of clients
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      // console.log("Service Worker activated and controlling clients");
+    })
+  );
+});
+
 messaging.onBackgroundMessage(function(payload) {
   // console.log("📦 Background message received:", payload);
 
@@ -20,8 +38,8 @@ messaging.onBackgroundMessage(function(payload) {
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: 'https://ahmedraashwan.github.io/electro/favicon.ico', // ✅ Custom icon
-    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA', // Large image
+    icon: 'https://ahmedraashwan.github.io/electro/favicon.ico',
+    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA',
     data: {
       url: clickAction
     }
@@ -32,7 +50,7 @@ self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   const targetUrl = event.notification.data?.url || 'http://reports.infy.uk/reports.html';
-  console.log("🔗 Opening URL:", targetUrl);
+  // console.log("🔗 Opening URL:", targetUrl);
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
