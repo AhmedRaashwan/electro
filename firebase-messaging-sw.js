@@ -11,23 +11,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle installation and skip waiting
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    self.skipWaiting().then(() => {
-      // console.log("Service Worker installed and activated immediately");
-    })
-  );
-});
 
-// Handle activation and take control of clients
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    self.clients.claim().then(() => {
-      // console.log("Service Worker activated and controlling clients");
-    })
-  );
-});
 
 messaging.onBackgroundMessage(function(payload) {
   // console.log("📦 Background message received:", payload);
