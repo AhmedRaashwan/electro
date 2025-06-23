@@ -1,7 +1,6 @@
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js");
 
-// Initialize Firebase with your project's configuration
 firebase.initializeApp({
   apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
   authDomain: "notify-raa.firebaseapp.com",
@@ -10,43 +9,14 @@ firebase.initializeApp({
   appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
 });
 
-// Get the Messaging service instance
 const messaging = firebase.messaging();
 
-// Listen for background messages
 messaging.onBackgroundMessage(function(payload) {
   console.log("📦 Background message received:", payload);
+  const { title, body } = payload.notification;
 
-  const notificationTitle = payload.data.title;
-  const notificationBody = payload.data.body;
-  const clickAction = payload.data.click_action || '/'; // 🔗 Default or provided link
-
-  self.registration.showNotification(notificationTitle, {
-    body: notificationBody,
-    icon: '/icon.png',
-    data: {
-      url: clickAction
-    }
-  });
-});
-
-// Handle clicks on the notification
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Reuse open tab if exists
-      for (let client of windowClients) {
-        if (client.url === targetUrl && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // Else open a new tab
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
-    })
-  );
+  self.registration.showNotification(title, {
+    body,
+    icon: '/icon.png' // Optional
+  }); 
 });
