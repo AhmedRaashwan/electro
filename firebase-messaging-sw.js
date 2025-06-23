@@ -39,7 +39,7 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
-    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA',
+    image: 'https://www.mew.gov.kw/images/mew_en.svg',
     data: {
       url: clickAction
     }
