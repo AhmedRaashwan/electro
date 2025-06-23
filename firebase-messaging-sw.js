@@ -53,28 +53,38 @@ self.addEventListener('notificationclick', function(event) {
 
 
 // Immediately show test notification on Service Worker activation
-self.addEventListener('activate', function(event) {
+// self.addEventListener('activate', function(event) {
+//   event.waitUntil(
+//     self.registration.showNotification("🔗 Manual Test", {
+//       body: "Click to open google.com",
+//       icon: "https://ahmedraashwan.github.io/electro/favicon.ico",
+//       data: {
+//         url: "https://google.com"
+//       }
+//     })
+//   );
+// });
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+
+  // Access the custom data you passed into showNotification
+  const targetUrl = event.notification?.data?.url || '/';
+  console.log("🔗 Opening URL:", targetUrl);
+
   event.waitUntil(
-    self.registration.showNotification("🔗 Manual Test", {
-      body: "Click to open google.com",
-      icon: "https://ahmedraashwan.github.io/electro/favicon.ico",
-      data: {
-        url: "https://google.com"
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let client of windowClients) {
+        // Reuse tab if already open
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise, open a new tab
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
       }
     })
   );
 });
 
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
-  console.log("🔗 Opening:", targetUrl);
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientsArr => {
-      for (let client of clientsArr) {
-        if (client.url === targetUrl && 'focus' in client) return client.focus();
-      }
-      if (clients.openWindow) return clients.openWindow(targetUrl);
-    })
-  );
-});
