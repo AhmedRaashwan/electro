@@ -3,7 +3,7 @@ self.addEventListener('activate', function(event) {
   event.waitUntil(
     self.registration.showNotification("🔗 Manual Test", {
       body: "Click to open google.com",
-      icon: "/icon.png",
+      icon: "https://ahmedraashwan.github.io/electro/favicon.ico",
       data: {
         url: "https://google.com"
       }
