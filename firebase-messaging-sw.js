@@ -1,3 +1,4 @@
+// Firebase imports
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js");
 
@@ -29,22 +30,29 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-messaging.onBackgroundMessage(function(payload) {
-  // console.log("📦 Background message received:", payload);
+// Handle push events
+self.addEventListener('push', function(event) {
+  if (!event.data) return;
 
-  const notificationTitle = payload.data.title;
-  const notificationBody = payload.data.body;
-  const clickAction ='http://reports.infy.uk/reports.html';
+  const payload = event.data.json();
+  if (!payload.data) return;
 
-  self.registration.showNotification(notificationTitle, {
-    body: notificationBody,
-    icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
-    data: {
-      url: clickAction
-    }
-  });
+  const notificationTitle = payload.data.title || "Default Title";
+  const notificationBody = payload.data.body || "Default Message";
+  const clickAction = 'http://reports.infy.uk/reports.html';
+
+  event.waitUntil(
+    self.registration.showNotification(notificationTitle, {
+      body: notificationBody,
+      icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
+      data: {
+        url: clickAction
+      }
+    })
+  );
 });
 
+// Handle notification clicks
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
