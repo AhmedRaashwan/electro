@@ -107,93 +107,60 @@
     </button>
   </div>
   <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
-    <strong>⚠️ Notice:</strong>
-    <p style="margin: 8px 0;">
-      If you're experiencing a CORS error, you can temporarily enable access by visiting:
-      <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
-        https://cors-anywhere.herokuapp.com/corsdemo
-      </a>
-    </p>
-    <p style="margin: 0; font-size: 0.9em; color: #555;">
-      After clicking "Request temporary access", your IP will be allowed for about 1 hour.
-    </p>
+   
   </div>
 
 <script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
-    authDomain: "notify-raa.firebaseapp.com",
-    projectId: "notify-raa",
-    storageBucket: "notify-raa.firebasestorage.app",
-    messagingSenderId: "767633213120",
-    appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
-    measurementId: "G-SQ4T5Q0WN0"
-  };
+async function requestPermission() {
+  const button = document.getElementById('enable-notifications');
+  const buttonIcon = document.getElementById('button-icon');
+  const buttonText = document.getElementById('button-text');
+  const loadingIcon = document.getElementById('loading-icon');
 
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
+  button.disabled = true;
+  buttonIcon.style.display = 'none';
+  buttonText.style.display = 'none';
+  loadingIcon.style.display = 'inline';
 
-  const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzFFZEUtgGKGTcqcvM4adf4nZ7ARngkm1MbLneI0bkKu1GoU0gkFCizaaxiRjxqx_3u/exec";
-
-  async function requestPermission() {
-    const button = document.getElementById('enable-notifications');
-    const buttonIcon = document.getElementById('button-icon');
-    const buttonText = document.getElementById('button-text');
-    const loadingIcon = document.getElementById('loading-icon');
-
-    button.disabled = true;
-    buttonIcon.style.display = 'none';
-    buttonText.style.display = 'none';
-    loadingIcon.style.display = 'inline';
-
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        alert("❌ Notification permission denied");
-        resetButtonState();
-        return;
-      }
-
-      const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
-      console.log("✅ Service Worker registered:", swRegistration);
-
-      const token = await messaging.getToken({
-        vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
-        serviceWorkerRegistration: swRegistration
-      });
-
-      console.log("🎯 FCM Token:", token);
-
-      const url = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
-      const response = await fetch(url, { method: "GET" });
-      const result = await response.text();
-      console.log("🟢 Server response:", result);
-
-      if (response.ok) {
-        alert("✅ Token registered successfully!");
-      } else {
-        alert("⚠️ Server error while saving token.");
-      }
-
-    } catch (error) {
-      console.error("❌ Failed to register token:", error);
-      alert("❌ Error occurred while saving the token.");
-    } finally {
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      alert("❌ لم يتم السماح بالإشعارات");
       resetButtonState();
+      return;
     }
 
-    function resetButtonState() {
-      button.disabled = false;
-      buttonIcon.style.display = 'inline';
-      buttonText.style.display = 'inline';
-      loadingIcon.style.display = 'none';
-    }
+    const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
+    console.log("✅ Service Worker registered");
+
+    const token = await messaging.getToken({
+      vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+      serviceWorkerRegistration: swRegistration
+    });
+
+    console.log("🎯 FCM Token:", token);
+
+    // Send the token silently via image
+    const img = new Image();
+    img.src = `${'https://script.google.com/macros/s/AKfycbzFFZEUtgGKGTcqcvM4adf4nZ7ARngkm1MbLneI0bkKu1GoU0gkFCizaaxiRjxqx_3u/exec'}?token=${encodeURIComponent(token)}`;
+
+    alert("✅ تم تفعيل الإشعارات بنجاح");
+
+  } catch (error) {
+    console.error("❌ Error saving token:", error);
+    alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
+  } finally {
+    resetButtonState();
   }
 
-  messaging.onMessage((payload) => {
-    console.log("📬 Foreground message:", payload);
-  });
+  function resetButtonState() {
+    button.disabled = false;
+    buttonIcon.style.display = 'inline';
+    buttonText.style.display = 'inline';
+    loadingIcon.style.display = 'none';
+  }
+}
+
 </script>
 
 </body>
