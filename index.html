@@ -9,9 +9,92 @@
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
-
-  <!-- التنسيقات كما هي -->
-  <style>/* … نفس CSS السابق … */</style>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f3f4f6;
+      color: #111827;
+      margin: 0;
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #1f2937;
+        color: #f9fafb;
+      }
+      .container {
+        background-color: #111827;
+        color: #f9fafb;
+      }
+      .btn {
+        background-color: #2563eb;
+      }
+      .btn:hover {
+        background-color: #1e40af;
+      }
+      p {
+        color: #d1d5db;
+      }
+    }
+    .container {
+      background-color: #fff;
+      max-width: 400px;
+      width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+      padding: 24px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      color: #0D1117;
+    }
+    p {
+      font-size: 14px;
+      color: #4b5563;
+      margin-bottom: 24px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 0;
+      background-color: #2563eb;
+      color: #fff;
+      font-weight: 600;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .btn:hover {
+      background-color: #1e40af;
+    }
+    .btn:disabled {
+      background-color: #6b7280;
+      cursor: not-allowed;
+    }
+    .loading-icon {
+      display: none;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
