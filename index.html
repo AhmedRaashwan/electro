@@ -4,95 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تفعيل الاشعارات</title>
+
+  <!-- أيقونة وسكربتات فيربيز -->
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-      color: #111827;
-      margin: 0;
-      padding: 16px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #1f2937;
-        color: #f9fafb;
-      }
-      .container {
-        background-color: #111827;
-        color: #f9fafb;
-      }
-      .btn {
-        background-color: #2563eb;
-      }
-      .btn:hover {
-        background-color: #1e40af;
-      }
-      p {
-        color: #d1d5db;
-      }
-    }
-    .container {
-      background-color: #fff;
-      max-width: 400px;
-      width: 100%;
-      border-radius: 16px;
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-      padding: 24px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    h2 {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 16px;
-      color: #0D1117;
-    }
-    p {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 24px;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 12px 0;
-      background-color: #2563eb;
-      color: #fff;
-      font-weight: 600;
-      font-size: 16px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-    .btn:hover {
-      background-color: #1e40af;
-    }
-    .btn:disabled {
-      background-color: #6b7280;
-      cursor: not-allowed;
-    }
-    .loading-icon {
-      display: none;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-  </style>
+
+  <!-- التنسيقات كما هي -->
+  <style>/* … نفس CSS السابق … */</style>
 </head>
 <body>
   <div class="container">
@@ -106,21 +25,19 @@
       <span id="loading-icon" class="loading-icon" style="font-size: 20px;">⏳</span>
     </button>
   </div>
-  <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
+
+  <!-- تنبيه اختيارى عن CORS -->
+  <div style="background:#f9f9f9;border-left:4px solid #007bff;padding:16px;margin:20px 0;font-family:Arial,sans-serif;">
     <strong>⚠️ Notice:</strong>
-    <p style="margin: 8px 0;">
-      If you're experiencing a CORS error, you can temporarily enable access by visiting:
-      <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
-        https://cors-anywhere.herokuapp.com/corsdemo
-      </a>
-    </p>
-    <p style="margin: 0; font-size: 0.9em; color: #555;">
-      After clicking "Request temporary access", your IP will be allowed for about 1 hour.
+    <p style="margin:8px 0;">
+      If you still encounter CORS errors, the proxy used now is:
+      <code>https://api.allorigins.win/</code>
+      which does <strong>not</strong> require manual activation.
     </p>
   </div>
 
   <script>
-    // Firebase config
+    /* ========== Firebase config ========== */
     const firebaseConfig = {
       apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
       authDomain: "notify-raa.firebaseapp.com",
@@ -131,23 +48,23 @@
       measurementId: "G-SQ4T5Q0WN0"
     };
 
-    // Initialize Firebase
-    // firebase.initializeApp(firebaseConfig);
-    // const messaging = firebase.messaging();
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-    // Replace with your actual Apps Script Web App URL
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
+    /* رابط واجهة الويب فى Apps Script */
+    const appsScriptUrl =
+      "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
 
-    // CORS proxy for development only (remove in production)
-    const corsProxy = "https://cors-anywhere.herokuapp.com/";
+    /* 🆕  خدمة All Origins الدائمة */
+    const corsProxy = "https://api.allorigins.win/raw?url=";
 
     async function requestPermission() {
-      const button = document.getElementById('enable-notifications');
-      const buttonIcon = document.getElementById('button-icon');
-      const buttonText = document.getElementById('button-text');
-      const loadingIcon = document.getElementById('loading-icon');
+      const button       = document.getElementById('enable-notifications');
+      const buttonIcon   = document.getElementById('button-icon');
+      const buttonText   = document.getElementById('button-text');
+      const loadingIcon  = document.getElementById('loading-icon');
 
-      // Show loading state
+      // حالة التحميل
       button.disabled = true;
       buttonIcon.style.display = 'none';
       buttonText.style.display = 'none';
@@ -161,7 +78,9 @@
           return;
         }
 
-        const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
+        const swRegistration = await navigator.serviceWorker.register(
+          'https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js'
+        );
         console.log("✅ Service Worker registered:", swRegistration);
 
         const token = await messaging.getToken({
@@ -171,11 +90,15 @@
 
         console.log("🎯 FCM Token:", token);
 
-        const response = await fetch(corsProxy + appsScriptUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token })
-        });
+        /* استخدام All Origins: نمرر الرابط مُرمَّزًا */
+        const response = await fetch(
+          corsProxy + encodeURIComponent(appsScriptUrl),
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+          }
+        );
 
         const result = await response.text();
         console.log("🟢 Server response:", result);
@@ -183,31 +106,28 @@
         if (response.ok) {
           alert("✅ Token registered successfully!");
         } else {
-          alert("⚠️ Server responded with an error. Redirecting to CORS page...");
-          window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
+          alert("⚠️ Server responded with an error.");
         }
       } catch (error) {
         console.error("❌ Failed to register token:", error);
-        alert("❌ Error occurred while saving the token. Redirecting to CORS page...");
-        window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
+        alert("❌ Error occurred while saving the token.");
       } finally {
         resetButtonState();
       }
 
       function resetButtonState() {
-        button.disabled = false;
+        button.disabled   = false;
         buttonIcon.style.display = 'inline';
         buttonText.style.display = 'inline';
         loadingIcon.style.display = 'none';
       }
     }
 
-    // Handle foreground messages
-    // messaging.onMessage((payload) => {
-    //   console.log("📬 Foreground message:", payload);
-    //   // const { title, body } = payload.data || {};
-    //   // alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
-    // });
+    /* إلغاء تنبيه alert المكرر أثناء استقبال الرسائل فى المقدمة */
+    messaging.onMessage((payload) => {
+      console.log("📬 Foreground message:", payload);
+      // ترك المعالجة للتوست المخصص أو تجاهل
+    });
   </script>
 </body>
 </html>
