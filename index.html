@@ -206,7 +206,7 @@
     messaging.onMessage((payload) => {
       console.log("📬 Foreground message:", payload);
       const { title, body } = payload.data || {};
-      alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
+      // alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
     });
   </script>
 </body>
