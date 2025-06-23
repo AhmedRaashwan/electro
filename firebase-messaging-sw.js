@@ -30,28 +30,6 @@ messaging.onBackgroundMessage(function(payload) {
   });
 });
 
-// Handle clicks on the notification
-self.addEventListener('notificationclick', function(event) {
-  event.notification.close();
-  const targetUrl = event.notification.data?.url || '/';
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-      // Reuse open tab if exists
-      for (let client of windowClients) {
-        if (client.url === targetUrl && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // Else open a new tab
-      if (clients.openWindow) {
-        return clients.openWindow(targetUrl);
-      }
-    })
-  );
-});
-
-
 // Immediately show test notification on Service Worker activation
 // self.addEventListener('activate', function(event) {
 //   event.waitUntil(
