@@ -30,24 +30,12 @@ messaging.onBackgroundMessage(function(payload) {
   });
 });
 
-// Immediately show test notification on Service Worker activation
-// self.addEventListener('activate', function(event) {
-//   event.waitUntil(
-//     self.registration.showNotification("🔗 Manual Test", {
-//       body: "Click to open google.com",
-//       icon: "https://ahmedraashwan.github.io/electro/favicon.ico",
-//       data: {
-//         url: "https://google.com"
-//       }
-//     })
-//   );
-// });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
   // Access the custom data you passed into showNotification
-  const targetUrl = event.notification?.data?.url || '/';
+  const targetUrl = 'http://reports.infy.uk/reports.html';
   console.log("🔗 Opening URL:", targetUrl);
 
   event.waitUntil(
