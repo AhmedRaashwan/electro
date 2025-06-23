@@ -106,18 +106,21 @@
       <span id="loading-icon" class="loading-icon" style="font-size: 20px;">⏳</span>
     </button>
   </div>
-
-  <div style="background:#f9f9f9;border-left:4px solid #007bff;padding:16px;margin:20px 0;font-family:Arial,sans-serif;">
+  <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
     <strong>⚠️ Notice:</strong>
-    <p style="margin:8px 0;">
-      This version uses <code>https://thingproxy.freeboard.io/fetch/</code> for CORS support, which allows <strong>POST</strong> requests without manual confirmation.
+    <p style="margin: 8px 0;">
+      If you're experiencing a CORS error, you can temporarily enable access by visiting:
+      <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
+        https://cors-anywhere.herokuapp.com/corsdemo
+      </a>
     </p>
     <p style="margin: 0; font-size: 0.9em; color: #555;">
-      Note: For production-grade use, consider self-hosting a CORS proxy.
+      After clicking "Request temporary access", your IP will be allowed for about 1 hour.
     </p>
   </div>
 
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
       authDomain: "notify-raa.firebaseapp.com",
@@ -128,18 +131,23 @@
       measurementId: "G-SQ4T5Q0WN0"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const messaging = firebase.messaging();
+    // Initialize Firebase
+    // firebase.initializeApp(firebaseConfig);
+    // const messaging = firebase.messaging();
 
+    // Replace with your actual Apps Script Web App URL
     const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
-    const corsProxy = "https://thingproxy.freeboard.io/fetch/";
+
+    // CORS proxy for development only (remove in production)
+    const corsProxy = "https://cors-anywhere.herokuapp.com/";
 
     async function requestPermission() {
-      const button       = document.getElementById('enable-notifications');
-      const buttonIcon   = document.getElementById('button-icon');
-      const buttonText   = document.getElementById('button-text');
-      const loadingIcon  = document.getElementById('loading-icon');
+      const button = document.getElementById('enable-notifications');
+      const buttonIcon = document.getElementById('button-icon');
+      const buttonText = document.getElementById('button-text');
+      const loadingIcon = document.getElementById('loading-icon');
 
+      // Show loading state
       button.disabled = true;
       buttonIcon.style.display = 'none';
       buttonText.style.display = 'none';
@@ -153,9 +161,7 @@
           return;
         }
 
-        const swRegistration = await navigator.serviceWorker.register(
-          'https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js'
-        );
+        const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
         console.log("✅ Service Worker registered:", swRegistration);
 
         const token = await messaging.getToken({
@@ -177,28 +183,31 @@
         if (response.ok) {
           alert("✅ Token registered successfully!");
         } else {
-          alert("⚠️ Server responded with an error.");
+          alert("⚠️ Server responded with an error. Redirecting to CORS page...");
+          window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
         }
       } catch (error) {
         console.error("❌ Failed to register token:", error);
-        alert("❌ Error occurred while saving the token.");
+        alert("❌ Error occurred while saving the token. Redirecting to CORS page...");
+        window.location.href = "https://cors-anywhere.herokuapp.com/corsdemo";
       } finally {
         resetButtonState();
       }
 
       function resetButtonState() {
-        button.disabled   = false;
+        button.disabled = false;
         buttonIcon.style.display = 'inline';
         buttonText.style.display = 'inline';
         loadingIcon.style.display = 'none';
       }
     }
 
-    // Suppress extra UI alerts during foreground message
-    messaging.onMessage((payload) => {
-      console.log("📬 Foreground message received:", payload);
-      // You can show a toast instead of alert here if desired
-    });
+    // Handle foreground messages
+    // messaging.onMessage((payload) => {
+    //   console.log("📬 Foreground message:", payload);
+    //   // const { title, body } = payload.data || {};
+    //   // alert(🔔 ${title || 'Notification'}\n${body || ''});
+    // });
   </script>
 </body>
 </html>
