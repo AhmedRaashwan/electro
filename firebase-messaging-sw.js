@@ -12,7 +12,7 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
-  console.log("📦 Background message received:", payload);
+  // console.log("📦 Background message received:", payload);
 
   const notificationTitle = payload.data.title;
   const notificationBody = payload.data.body;
