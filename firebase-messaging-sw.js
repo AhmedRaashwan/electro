@@ -17,23 +17,36 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log("📦 Background message received:", payload);
 
-  // Extract notification data from the 'data' payload,
-  // as the 'notification' payload will no longer be sent
-  // (to prevent automatic display by the browser).
   const notificationTitle = payload.data.title;
   const notificationBody = payload.data.body;
+  const clickAction = payload.data.click_action || '/'; // 🔗 Default or provided link
 
-  // You can also extract other custom data from payload.data
-  // For example, if you send an 'imageUrl' in your data payload:
-  // const imageUrl = payload.data.imageUrl;
-
-  // Display the notification using the extracted data
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
-    icon: '/icon.png' // Ensure this path is correct for your icon!
-    // Add other notification options here as needed:
-    // image: imageUrl,
-    // badge: '/badge.png',
-    // data: payload.data // To pass custom data back when notification is clicked
+    icon: '/icon.png',
+    data: {
+      url: clickAction
+    }
   });
+});
+
+// Handle clicks on the notification
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      // Reuse open tab if exists
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Else open a new tab
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
