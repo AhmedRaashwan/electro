@@ -11,22 +11,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// messaging.onBackgroundMessage(function(payload) {
-//   console.log("📦 Background message received:", payload);
+messaging.onBackgroundMessage(function(payload) {
+  console.log("📦 Background message received:", payload);
 
-//   const notificationTitle = payload.data.title;
-//   const notificationBody = payload.data.body;
-//   const clickAction = payload.data.click_action || '/';
+  const notificationTitle = payload.data.title;
+  const notificationBody = payload.data.body;
+  const clickAction = payload.data.click_action || 'http://reports.infy.uk/reports.html';
 
-//   self.registration.showNotification(notificationTitle, {
-//     body: notificationBody,
-//     icon: 'https://ahmedraashwan.github.io/electro/favicon.ico', // ✅ Custom icon
-//     image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA', // Large image
-//     data: {
-//       url: clickAction
-//     }
-//   });
-// });
+  self.registration.showNotification(notificationTitle, {
+    body: notificationBody,
+    icon: 'https://ahmedraashwan.github.io/electro/favicon.ico', // ✅ Custom icon
+    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA', // Large image
+    data: {
+      url: clickAction
+    }
+  });
+});
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
