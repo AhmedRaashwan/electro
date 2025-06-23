@@ -11,12 +11,57 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(function(payload) {
-  console.log("📦 Background message received:", payload);
-  const { title, body } = payload.notification;
+// Handle installation and skip waiting
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    self.skipWaiting().then(() => {
+      // console.log("Service Worker installed and activated immediately");
+    })
+  );
+});
 
-  self.registration.showNotification(title, {
-    body,
-    icon: '/icon.png' // Optional
-  }); 
+// Handle activation and take control of clients
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      // console.log("Service Worker activated and controlling clients");
+    })
+  );
+});
+
+messaging.onBackgroundMessage(function(payload) {
+  // console.log("📦 Background message received:", payload);
+
+  const notificationTitle = payload.data.title;
+  const notificationBody = payload.data.body;
+  const clickAction = payload.data.click_action || 'http://reports.infy.uk/reports.html';
+
+  self.registration.showNotification(notificationTitle, {
+    body: notificationBody,
+    icon: 'https://ahmedraashwan.github.io/electro/favicon.ico',
+    image: 'https://media.licdn.com/dms/image/v2/D4D03AQGKgQjcQdzToQ/profile-displayphoto-shrink_800_800/B4DZT1CuFwGcAg-/0/1739277919455?e=1756339200&v=beta&t=A7iTjHbwVB_ZA9Gw11Na3sRrV6antN9PIenCXLyAIiA',
+    data: {
+      url: clickAction
+    }
+  });
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+
+  const targetUrl = event.notification.data?.url || 'http://reports.infy.uk/reports.html';
+  // console.log("🔗 Opening URL:", targetUrl);
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
