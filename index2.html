@@ -1,12 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head> 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تفعيل الاشعارات</title>
+  <title>تفعيل الإشعارات</title>
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
+
+  <!-- Firebase (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -21,45 +24,23 @@
       justify-content: center;
     }
     @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #1f2937;
-        color: #f9fafb;
-      }
-      .container {
-        background-color: #111827;
-        color: #f9fafb;
-      }
-      .btn {
-        background-color: #2563eb;
-      }
-      .btn:hover {
-        background-color: #1e40af;
-      }
-      p {
-        color: #d1d5db;
-      }
+      body { background-color: #1f2937; color: #f9fafb; }
+      .container { background-color: #111827; color: #f9fafb; }
+      .btn { background-color: #2563eb; }
+      .btn:hover { background-color: #1e40af; }
+      p { color: #d1d5db; }
     }
     .container {
       background-color: #fff;
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
       border-radius: 16px;
       box-shadow: 0 10px 15px rgba(0,0,0,0.1);
       padding: 24px;
-      box-sizing: border-box;
       text-align: center;
     }
-    h2 {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 16px;
-      color: #0D1117;
-    }
-    p {
-      font-size: 14px;
-      color: #4b5563;
-      margin-bottom: 24px;
-    }
+    h2 { font-size: 22px; font-weight: bold; margin-bottom: 16px; }
+    p { font-size: 14px; color: #4b5563; margin-bottom: 24px; }
     .btn {
       display: inline-flex;
       align-items: center;
@@ -77,91 +58,95 @@
       transition: background-color 0.3s ease;
       user-select: none;
     }
-    .btn:hover {
-      background-color: #1e40af;
-    }
-    .btn:disabled {
-      background-color: #6b7280;
-      cursor: not-allowed;
-    }
-    .loading-icon {
-      display: none;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    .btn:hover { background-color: #1e40af; }
+    .btn:disabled { background-color: #6b7280; cursor: not-allowed; }
+    .loading-icon { display: none; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
   </style>
 </head>
 <body>
+
   <div class="container">
     <h2>نظام التقارير الفنية الآلي</h2>
-    <br>
-    <h2>تفعيل الاشعارات</h2>
-    <h2>يمكنك تفعيل الإشعارات إذا كنت ترغب في البقاء على اطلاع بأحدث التقارير</h2>
+    <p>فعّل الإشعارات لتصلك أحدث التقارير مباشرةً.</p>
     <button id="enable-notifications" onclick="requestPermission()" class="btn">
       <span id="button-icon" style="font-size: 20px;">🔔</span>
       <span id="button-text">تفعيل الإشعارات</span>
       <span id="loading-icon" class="loading-icon" style="font-size: 20px;">⏳</span>
     </button>
   </div>
-  <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
-   
-  </div>
 
-<script>
-async function requestPermission() {
-  const button = document.getElementById('enable-notifications');
-  const buttonIcon = document.getElementById('button-icon');
-  const buttonText = document.getElementById('button-text');
-  const loadingIcon = document.getElementById('loading-icon');
+  <script>
+    // ---------- Firebase Configuration ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
+      authDomain: "notify-raa.firebaseapp.com",
+      projectId: "notify-raa",
+      storageBucket: "notify-raa.firebasestorage.app",
+      messagingSenderId: "767633213120",
+      appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
+      measurementId: "G-SQ4T5Q0WN0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-  button.disabled = true;
-  buttonIcon.style.display = 'none';
-  buttonText.style.display = 'none';
-  loadingIcon.style.display = 'inline';
+    // ---------- Apps Script Web App URL ----------
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzFFZEUtgGKGTcqcvM4adf4nZ7ARngkm1MbLneI0bkKu1GoU0gkFCizaaxiRjxqx_3u/exec";
 
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      alert("❌ لم يتم السماح بالإشعارات");
-      resetButtonState();
-      return;
+    async function requestPermission() {
+      const button = document.getElementById('enable-notifications');
+      const buttonIcon = document.getElementById('button-icon');
+      const buttonText = document.getElementById('button-text');
+      const loadingIcon = document.getElementById('loading-icon');
+
+      // UI: loading state
+      button.disabled = true;
+      buttonIcon.style.display = 'none';
+      buttonText.style.display = 'none';
+      loadingIcon.style.display = 'inline';
+
+      try {
+        // 1) Browser permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert("❌ تم رفض الإذن بالإشعارات");
+          return;
+        }
+
+        // 2) Service Worker
+        const swReg = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
+        console.log("✅ Service Worker registered", swReg);
+
+        // 3) Get FCM token
+        const token = await messaging.getToken({
+          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+          serviceWorkerRegistration: swReg
+        });
+        console.log("🎯 FCM Token:", token);
+
+        // 4) Send token silently via an invisible image GET request
+        const img = new Image();
+        img.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
+
+        alert("✅ تم تفعيل الإشعارات وحفظ الرمز بنجاح");
+
+      } catch (err) {
+        console.error("❌ خطأ أثناء إنشاء التوكن:", err);
+        alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
+      } finally {
+        // Restore button
+        button.disabled = false;
+        buttonIcon.style.display = 'inline';
+        buttonText.style.display = 'inline';
+        loadingIcon.style.display = 'none';
+      }
     }
 
-    const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
-    console.log("✅ Service Worker registered");
-
-    const token = await messaging.getToken({
-      vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
-      serviceWorkerRegistration: swRegistration
+    // Handle foreground messages
+    messaging.onMessage((payload) => {
+      console.log("📬 رسالة واردة في الواجهة الأمامية:", payload);
+      // يمكن عرض إشعار مخصص هنا إن رغبت
     });
-
-    console.log("🎯 FCM Token:", token);
-
-    // Send the token silently via image
-    const img = new Image();
-    img.src = `${'https://script.google.com/macros/s/AKfycbzFFZEUtgGKGTcqcvM4adf4nZ7ARngkm1MbLneI0bkKu1GoU0gkFCizaaxiRjxqx_3u/exec'}?token=${encodeURIComponent(token)}`;
-
-    alert("✅ تم تفعيل الإشعارات بنجاح");
-
-  } catch (error) {
-    console.error("❌ Error saving token:", error);
-    alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
-  } finally {
-    resetButtonState();
-  }
-
-  function resetButtonState() {
-    button.disabled = false;
-    buttonIcon.style.display = 'inline';
-    buttonText.style.display = 'inline';
-    loadingIcon.style.display = 'none';
-  }
-}
-
-</script>
-
+  </script>
 </body>
 </html>
