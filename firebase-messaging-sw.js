@@ -11,7 +11,23 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Handle installation and skip waiting
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    self.skipWaiting().then(() => {
+      // console.log("Service Worker installed and activated immediately");
+    })
+  );
+});
 
+// Handle activation and take control of clients
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    self.clients.claim().then(() => {
+      // console.log("Service Worker activated and controlling clients");
+    })
+  );
+});
 
 messaging.onBackgroundMessage(function(payload) {
   // console.log("📦 Background message received:", payload);
@@ -27,4 +43,24 @@ messaging.onBackgroundMessage(function(payload) {
       url: clickAction
     }
   });
+});
+
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+
+  const targetUrl = 'http://reports.infy.uk/reports.html';
+  // console.log("🔗 Opening URL:", targetUrl);
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
 });
