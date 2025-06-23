@@ -19,30 +19,11 @@ self.addEventListener('activate', event => {
   event.waitUntil(self.clients.claim());
 });
 
-messaging.onBackgroundMessage(payload => {
-  // 👇 Add this guard to avoid showing extra unwanted notification
-  if (
-    !payload?.data ||
-    !payload.data.title ||
-    !payload.data.body
-  ) {
-    return; // skip empty or update-triggered message
-  }
 
-  const notificationTitle = payload.data.title;
-  const notificationBody = payload.data.body;
-  const clickAction = payload.data.url || 'http://reports.infy.uk/reports.html';
-
-  self.registration.showNotification(notificationTitle, {
-    body: notificationBody,
-    icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
-    data: { url: clickAction }
-  });
-});
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const targetUrl = event.notification?.data?.url || 'http://reports.infy.uk/reports.html';
+  const targetUrl = 'http://reports.infy.uk/reports.html';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
