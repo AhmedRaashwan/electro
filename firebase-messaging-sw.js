@@ -39,7 +39,6 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
-    image: 'https://www.mew.gov.kw/images/mew_en.svg',
     data: {
       url: clickAction
     }
