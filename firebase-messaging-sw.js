@@ -11,56 +11,47 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Handle installation and skip waiting
-self.addEventListener('install', function(event) {
-  event.waitUntil(
-    self.skipWaiting().then(() => {
-      // console.log("Service Worker installed and activated immediately");
-    })
-  );
+self.addEventListener('install', event => {
+  event.waitUntil(self.skipWaiting());
 });
 
-// Handle activation and take control of clients
-self.addEventListener('activate', function(event) {
-  event.waitUntil(
-    self.clients.claim().then(() => {
-      // console.log("Service Worker activated and controlling clients");
-    })
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil(self.clients.claim());
 });
 
-messaging.onBackgroundMessage(function(payload) {
-  // console.log("📦 Background message received:", payload);
+messaging.onBackgroundMessage(payload => {
+  // 👇 Add this guard to avoid showing extra unwanted notification
+  if (
+    !payload?.data ||
+    !payload.data.title ||
+    !payload.data.body
+  ) {
+    return; // skip empty or update-triggered message
+  }
 
   const notificationTitle = payload.data.title;
   const notificationBody = payload.data.body;
-  const clickAction ='http://reports.infy.uk/reports.html';
+  const clickAction = payload.data.url || 'http://reports.infy.uk/reports.html';
 
   self.registration.showNotification(notificationTitle, {
     body: notificationBody,
     icon: 'https://ahmedraashwan.github.io/electro/kuwait.png',
-    data: {
-      url: clickAction
-    }
+    data: { url: clickAction }
   });
 });
 
-// self.addEventListener('notificationclick', function(event) {
-//   event.notification.close();
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const targetUrl = event.notification?.data?.url || 'http://reports.infy.uk/reports.html';
 
-//   const targetUrl = 'http://reports.infy.uk/reports.html';
-//   // console.log("🔗 Opening URL:", targetUrl);
-
-//   event.waitUntil(
-//     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
-//       for (let client of windowClients) {
-//         if (client.url === targetUrl && 'focus' in client) {
-//           return client.focus();
-//         }
-//       }
-//       if (clients.openWindow) {
-//         return clients.openWindow(targetUrl);
-//       }
-//     })
-//   );
-// });
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let client of windowClients) {
+        if (client.url === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(targetUrl);
+    })
+  );
+});
