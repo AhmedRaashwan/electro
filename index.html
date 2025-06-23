@@ -7,6 +7,8 @@
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
+</head>
+<body>
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -86,140 +88,94 @@
   <div class="container">
     <h2>نظام التقارير الفنية الآلي</h2>
     <br>
-    <h2>تفعيل الاشعارات</h2>
+        <h2> تفعيل الاشعارات</h2>
     <h2>يمكنك تفعيل الإشعارات إذا كنت ترغب في البقاء على اطلاع بأحدث التقارير</h2>
-    <button id="enable-notifications" onclick="requestPermission()" class="btn">
+    <button id="enable-notifications" onclick="requestPermission() "class="btn">
       <span style="font-size: 20px;">🔔</span> تفعيل الإشعارات
     </button>
   </div>
   <div style="background: #f9f9f9; border-left: 4px solid #007bff; padding: 16px; margin: 20px 0; font-family: Arial, sans-serif;">
-    <strong>⚠️ Notice:</strong>
-    <p style="margin: 8px 0;">
-      If you're experiencing a CORS error, you can temporarily enable access by visiting:
-      <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
-        https://cors-anywhere.herokuapp.com/corsdemo
-      </a>
-    </p>
-    <p style="margin: 0; font-size: 0.9em; color: #555;">
-      After clicking "Request temporary access", your IP will be allowed for about 1 hour.
-    </p>
-  </div>
+  <strong>⚠️ Notice:</strong>
+  <p style="margin: 8px 0;">
+    If you're experiencing a CORS error, you can temporarily enable access by visiting:
+    <a href="https://cors-anywhere.herokuapp.com/corsdemo" target="_blank" style="color: #007bff; text-decoration: underline;">
+      https://cors-anywhere.herokuapp.com/corsdemo
+    </a>
+  </p>
+  <p style="margin: 0; font-size: 0.9em; color: #555;">
+    After clicking "Request temporary access", your IP will be allowed for about 1 hour.
+  </p>
+</div>
 
-<script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
-    authDomain: "notify-raa.firebaseapp.com",
-    projectId: "notify-raa",
-    storageBucket: "notify-raa.firebasestorage.app",
-    messagingSenderId: "767633213120",
-    appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
-    measurementId: "G-SQ4T5Q0WN0"
-  };
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
+      authDomain: "notify-raa.firebaseapp.com",
+      projectId: "notify-raa",
+      storageBucket: "notify-raa.firebasestorage.app",
+      messagingSenderId: "767633213120",
+      appId: "1:767633213120:web:0a19231dc1f04e3ced0f25",
+      measurementId: "G-SQ4T5Q0WN0"
+    };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
 
-  // Replace with your actual Apps Script Web App URL
-  const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
+    // Replace with your actual Apps Script Web App URL
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbyyP_yVrQr9ab9k5hfsxx9C7eicnQ-pESu7RX_WxIgerUuXIN-jGbtxzoejTQEPqfDO/exec";
 
-  // CORS proxy for development only (remove in production)
-  const corsProxy = "https://cors-anywhere.herokuapp.com/";
+    // CORS proxy for development only (remove in production)
+    const corsProxy = "https://cors-anywhere.herokuapp.com/";
 
-  async function requestPermission() {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        alert("❌ Notification permission denied");
-        return;
-      }
-
-      // Register service worker
-      const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
-      console.log("✅ Service Worker registered:", swRegistration);
-
-      // Handle service worker updates
-      swRegistration.addEventListener('updatefound', () => {
-        const newWorker = swRegistration.installing;
-        console.log('🆙 New Service Worker found:', newWorker);
-
-        newWorker.addEventListener('statechange', () => {
-          console.log('🆙 New Service Worker state:', newWorker.state);
-          if (newWorker.state === 'installed') {
-            // Force skip waiting
-            newWorker.postMessage({ action: 'skipWaiting' });
-          }
-        });
-      });
-
-      // Listen for controller change to confirm new worker is active
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('🆙 Service Worker controller changed');
-        // Optionally reload to ensure new worker is fully in control
-        window.location.reload();
-      });
-
-      // Force activation of any waiting worker
-      if (swRegistration.waiting) {
-        console.log('🆙 Forcing waiting worker to skip');
-        swRegistration.waiting.postMessage({ action: 'skipWaiting' });
-      }
-
-      const token = await messaging.getToken({
-        vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
-        serviceWorkerRegistration: swRegistration
-      });
-
-      console.log("🎯 FCM Token:", token);
-
-      const response = await fetch(corsProxy + appsScriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token })
-      });
-
-      const result = await response.text();
-      console.log("🟢 Server response:", result);
-
-      if (response.ok) {
-        alert("✅ Token registered successfully!");
-      } else {
-        alert("⚠️ Server responded with an error. Check console.");
-      }
-    } catch (error) {
-      console.error("❌ Failed to register token:", error);
-      alert("❌ Error occurred while saving the token.");
-    }
-  }
-
-  // Handle messages from the service worker
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if (event.data && event.data.action === 'skipWaiting') {
-      console.log('🆗 Client received skipWaiting message');
-      // Reload to ensure new service worker takes control
-      window.location.reload();
-    }
-  });
-
-  // Fallback: Unregister stale service workers on load
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(registrations => {
-      for (let registration of registrations) {
-        if (registration.active && registration.active.scriptURL !== 'https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js') {
-          console.log('🗑️ Unregistering stale service worker:', registration.active.scriptURL);
-          registration.unregister();
+    async function requestPermission() {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert("❌ Notification permission denied");
+          return;
         }
-      }
-    });
-  }
 
-  // Handle foreground messages
-  messaging.onMessage((payload) => {
-    console.log("📬 Foreground message:", payload);
-    const { title, body } = payload.notification || {};
-    alert(`🔔 ${title || 'Notification'}\n${body || ''}`);
-  });
-</script>
+        // Register service worker with correct path
+        // Ensure firebase-messaging-sw.js is in the root directory of your GitHub Pages
+        const swRegistration = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
+        console.log("✅ Service Worker registered:", swRegistration);
+
+        const token = await messaging.getToken({
+          vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
+          serviceWorkerRegistration: swRegistration
+        });
+
+        console.log("🎯 FCM Token:", token);
+
+        const response = await fetch(corsProxy + appsScriptUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const result = await response.text();
+        console.log("🟢 Server response:", result);
+
+        if (response.ok) {
+          alert("✅ Token registered successfully!");
+        } else {
+          alert("⚠️ Server responded with an error. Check console.");
+        }
+      } catch (error) {
+        console.error("❌ Failed to register token:", error);
+        alert("❌ Error occurred while saving the token.");
+      }
+    }
+
+    // Handle foreground messages
+    messaging.onMessage((payload) => {
+      console.log("📬 Foreground message:", payload);
+      const { title, body } = payload.notification || {};
+      alert(`🔔 Ahmed || 'Notification'}\n${body || ''}`);
+    }
+                       );
+  </script>
 </body>
 </html>
