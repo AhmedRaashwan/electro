@@ -47,13 +47,15 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw1oGm7iwjYxS4ZEmcfhK1P3-121SdqkGootUlspBCfWmaBwvZAUJejr2Nfox4KVHs/exec";
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw1oGm7iwjYxS4ZEmcfhK1P3-121fSdqkGootUlspBCfWmaBwvFuZAUJejr2Nfox4KVHs/exec";
+
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     async function requestPermission() {
       const button = document.getElementById('enable-notifications');
-      const buttonIcon = document.getElementById('button-icon');
-      const buttonText = document.getElementById('button-text');
-      const loadingIcon = document.getElementById('loading-icon');
+      const buttonIcon = document.querySelector('#button-icon');
+      const buttonText = document.querySelector('#button-text');
+      const loadingIcon = document.querySelector('#loading-icon');
 
       button.disabled = true;
       buttonIcon.classList.add('hidden');
@@ -80,6 +82,9 @@
         iframe.style.display = 'none';
         iframe.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
         document.body.appendChild(iframe);
+
+        // Add 1-second delay
+        await sleep(1000);
 
         alert("✅ تم تفعيل الإشعارات وحفظ الرمز بنجاح");
 
