@@ -1,77 +1,36 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head> 
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>تفعيل الإشعارات</title>
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
-
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
-
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-      color: #111827;
-      margin: 0;
-      padding: 16px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    @media (prefers-color-scheme: dark) {
-      body { background-color: #1f2937; color: #f9fafb; }
-      .container { background-color: #111827; color: #f9fafb; }
-      .btn { background-color: #2563eb; }
-      .btn:hover { background-color: #1e40af; }
-      p { color: #d1d5db; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
-    .container {
-      background-color: #fff;
-      max-width: 420px;
-      width: 100%;
-      border-radius: 16px;
-      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-      padding: 24px;
-      text-align: center;
-    }
-    h2 { font-size: 22px; font-weight: bold; margin-bottom: 16px; }
-    p { font-size: 14px; color: #4b5563; margin-bottom: 24px; }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 12px 0;
-      background-color: #2563eb;
-      color: #fff;
-      font-weight: 600;
-      font-size: 16px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-      user-select: none;
-    }
-    .btn:hover { background-color: #1e40af; }
-    .btn:disabled { background-color: #6b7280; cursor: not-allowed; }
-    .loading-icon { display: none; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+    .animate-fadeIn { animation: fadeIn 0.5s ease-out; }
+    .animate-pulse:hover { animation: pulse 0.3s ease-in-out; }
+    .loading-icon { animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
-<body>
-
-  <div class="container">
-    <h2>نظام التقارير الفنية الآلي</h2>
-    <p>فعّل الإشعارات لتصلك أحدث التقارير مباشرةً.</p>
-    <button id="enable-notifications" onclick="requestPermission()" class="btn">
-      <span id="button-icon" style="font-size: 20px;">🔔</span>
+<body class="bg-gray-100 dark:bg-gray-900 flex items-center justify-center min-h-screen p-4 transition-colors duration-300">
+  <div class="container bg-white dark:bg-gray-800 max-w-md w-full rounded-2xl shadow-lg p-6 text-center animate-fadeIn">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">نظام التقارير الفنية الآلي</h2>
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">فعّل الإشعارات لتصلك أحدث التقارير مباشرةً.</p>
+    <button id="enable-notifications" onclick="requestPermission()" class="btn w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white font-semibold text-base rounded-xl hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-all duration-300 animate-pulse">
+      <span id="button-icon" class="text-xl">🔔</span>
       <span id="button-text">تفعيل الإشعارات</span>
-      <span id="loading-icon" class="loading-icon" style="font-size: 20px;">⏳</span>
+      <span id="loading-icon" class="loading-icon hidden text-xl">⏳</span>
     </button>
   </div>
 
@@ -97,9 +56,9 @@
       const loadingIcon = document.getElementById('loading-icon');
 
       button.disabled = true;
-      buttonIcon.style.display = 'none';
-      buttonText.style.display = 'none';
-      loadingIcon.style.display = 'inline';
+      buttonIcon.classList.add('hidden');
+      buttonText.classList.add('hidden');
+      loadingIcon.classList.remove('hidden');
 
       try {
         const permission = await Notification.requestPermission();
@@ -117,7 +76,6 @@
         });
         console.log("🎯 FCM Token:", token);
 
-        // ✅ استخدام iframe لإرسال التوكن بصمت
         const iframe = document.createElement('iframe');
         iframe.style.display = 'none';
         iframe.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
@@ -130,9 +88,9 @@
         alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
       } finally {
         button.disabled = false;
-        buttonIcon.style.display = 'inline';
-        buttonText.style.display = 'inline';
-        loadingIcon.style.display = 'none';
+        buttonIcon.classList.remove('hidden');
+        buttonText.classList.remove('hidden');
+        loadingIcon.classList.add('hidden');
       }
     }
 
