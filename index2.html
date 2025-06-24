@@ -47,15 +47,13 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw1oGm7iwjYxS4ZEmcfhK1P3-121fSdqkGootUlspBCfWmaBwvFuZAUJejr2Nfox4KVHs/exec";
-
-    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw1oGm7iwjYxS4ZEmcfhK1P3-121SdqkGootUlspBCfWmaBwvZAUJejr2Nfox4KVHs/exec";
 
     async function requestPermission() {
       const button = document.getElementById('enable-notifications');
-      const buttonIcon = document.querySelector('#button-icon');
-      const buttonText = document.querySelector('#button-text');
-      const loadingIcon = document.querySelector('#loading-icon');
+      const buttonIcon = document.getElementById('button-icon');
+      const buttonText = document.getElementById('button-text');
+      const loadingIcon = document.getElementById('loading-icon');
 
       button.disabled = true;
       buttonIcon.classList.add('hidden');
@@ -78,18 +76,16 @@
         });
         console.log("🎯 FCM Token:", token);
 
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
-        document.body.appendChild(iframe);
-
-        // Add 1-second delay
-        await sleep(1000);
-
-        alert("✅ تم تفعيل الإشعارات وحفظ الرمز بنجاح");
+        const response = await fetch(`${appsScriptUrl}?token=${encodeURIComponent(token)}`);
+        if (response.status === 200) {
+          alert("✅ تم تفعيل الإشعارات وحفظ الرمز بنجاح");
+        } else {
+          console.error(`❌ API responded with status: ${response.status}`);
+          alert(`❌ فشل حفظ الرمز. حالة الاستجابة: ${response.status}`);
+        }
 
       } catch (err) {
-        console.error("❌ خطأ أثناء إنشاء التوكن:", err);
+        console.error("❌ خطأ أثناء تفعيل الإشعارات:", err);
         alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
       } finally {
         button.disabled = false;
