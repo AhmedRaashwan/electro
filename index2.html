@@ -6,7 +6,6 @@
   <title>تفعيل الإشعارات</title>
   <link rel="icon" type="image/x-icon" href="https://ahmedraashwan.github.io/electro/favicon.ico">
 
-  <!-- Firebase (Compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging-compat.js"></script>
 
@@ -77,7 +76,6 @@
   </div>
 
   <script>
-    // ---------- Firebase Configuration ----------
     const firebaseConfig = {
       apiKey: "AIzaSyA2abvzifuMGk-tQEO8uymc08i8NvMAHwI",
       authDomain: "notify-raa.firebaseapp.com",
@@ -90,8 +88,7 @@
     firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
-    // ---------- Apps Script Web App URL ----------
-    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbzFFZEUtgGKGTcqcvM4adf4nZ7ARngkm1MbLneI0bkKu1GoU0gkFCizaaxiRjxqx_3u/exec";
+    const appsScriptUrl = "https://script.google.com/macros/s/AKfycbw1oGm7iwjYxS4ZEmcfhK1P3-121SdqkGootUlspBCfWmaBwvZAUJejr2Nfox4KVHs/exec";
 
     async function requestPermission() {
       const button = document.getElementById('enable-notifications');
@@ -99,34 +96,32 @@
       const buttonText = document.getElementById('button-text');
       const loadingIcon = document.getElementById('loading-icon');
 
-      // UI: loading state
       button.disabled = true;
       buttonIcon.style.display = 'none';
       buttonText.style.display = 'none';
       loadingIcon.style.display = 'inline';
 
       try {
-        // 1) Browser permission
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           alert("❌ تم رفض الإذن بالإشعارات");
           return;
         }
 
-        // 2) Service Worker
         const swReg = await navigator.serviceWorker.register('https://ahmedraashwan.github.io/electro/firebase-messaging-sw.js');
         console.log("✅ Service Worker registered", swReg);
 
-        // 3) Get FCM token
         const token = await messaging.getToken({
           vapidKey: "BFmDP36OqzBy-Lp8HANsCWYJmZkukVyAneLRi6miHMv7UXvW0zpKRxcw7j33UQKoiU6OMRnnP2t8O_sPW1DMjR0",
           serviceWorkerRegistration: swReg
         });
         console.log("🎯 FCM Token:", token);
 
-        // 4) Send token silently via an invisible image GET request
-        const img = new Image();
-        img.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
+        // ✅ استخدام iframe لإرسال التوكن بصمت
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = `${appsScriptUrl}?token=${encodeURIComponent(token)}`;
+        document.body.appendChild(iframe);
 
         alert("✅ تم تفعيل الإشعارات وحفظ الرمز بنجاح");
 
@@ -134,7 +129,6 @@
         console.error("❌ خطأ أثناء إنشاء التوكن:", err);
         alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
       } finally {
-        // Restore button
         button.disabled = false;
         buttonIcon.style.display = 'inline';
         buttonText.style.display = 'inline';
@@ -142,10 +136,8 @@
       }
     }
 
-    // Handle foreground messages
     messaging.onMessage((payload) => {
       console.log("📬 رسالة واردة في الواجهة الأمامية:", payload);
-      // يمكن عرض إشعار مخصص هنا إن رغبت
     });
   </script>
 </body>
