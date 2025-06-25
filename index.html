@@ -90,6 +90,8 @@
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
           alert("❌ تم رفض الإذن بالإشعارات");
+          notificationText.classList.remove('hidden');
+          notificationText.textContent = "سيتم تحويلك الآن الى لوحة تحكم التقارير";
           setTimeout(() => {
             window.location.href = "https://reports.infy.uk/admin.html";
           }, 2000);
@@ -112,7 +114,8 @@
 
         // Update UI on success
         notificationTitle.textContent = "تم تفعيل الإشعارات على جهازك";
-        notificationText.classList.add('hidden');
+        notificationText.classList.remove('hidden');
+        notificationText.textContent = "سيتم تحويلك الآن الى لوحة تحكم التقارير";
         button.classList.add('hidden');
         successAnimation.classList.remove('hidden');
 
@@ -123,6 +126,8 @@
       } catch (err) {
         console.error("❌ خطأ أثناء إنشاء التوكن:", err);
         alert("❌ حدث خطأ أثناء تفعيل الإشعارات");
+        notificationText.classList.remove('hidden');
+        notificationText.textContent = "سيتم تحويلك الآن الى لوحة تحكم التقارير";
         setTimeout(() => {
           window.location.href = "https://reports.infy.uk/admin.html";
         }, 2000);
