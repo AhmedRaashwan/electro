@@ -56,7 +56,7 @@ self.addEventListener('push', function(event) {
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
 
-  const targetUrl = 'http://reports.infy.uk/reports.html';
+  const targetUrl = 'http://reports.infy.uk/admin.html';
   // console.log("🔗 Opening URL:", targetUrl);
 
   event.waitUntil(
