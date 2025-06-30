@@ -39,7 +39,7 @@ self.addEventListener('push', function(event) {
 
   const notificationTitle = payload.data.title || "Default Title";
   const notificationBody = payload.data.body || "Default Message";
-  const clickAction = 'http://reports.infy.uk/reports.html';
+  const clickAction = 'http://reports.infy.uk/admin.html';
 
   event.waitUntil(
     self.registration.showNotification(notificationTitle, {
